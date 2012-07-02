@@ -1,0 +1,33 @@
+# url to POST to
+api_endpoint: http://localhost:3000/data_files/api_create
+
+# specify any parameters to be sent with every POST, these will be added to the multipart POST for all files
+# this might be used to provide authentication information if tokens are being used
+common_parameters:
+  auth_token: RfmknM43yYnZxtVPfAuH
+
+#the name of the file part parameter
+file_parameter_name: file
+
+files:
+  -
+    path: /absolute/path/to/file.here
+    # specify any additional file-specific POST parameters to send with the file, these will be added to the multipart POST
+    file_parameters:
+      description: some desc
+      type: RAW
+      experiment_id: 78
+  -
+    path: /absolute/path/to/file.here
+    # specify any additional file-specific POST parameters to send with the file, these will be added to the multipart POST
+    file_parameters:
+      description: another desc
+      type: PROCESSED
+      experiment_id: invalid
+  -
+    path: /absolute/path/to/file.here
+    # specify any additional file-specific POST parameters to send with the file, these will be added to the multipart POST
+    file_parameters:
+      type: UNKNOWN
+      experiment_id: 78
+      tag_names: "Photo","Video"

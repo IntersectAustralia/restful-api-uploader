@@ -1,0 +1,20 @@
+api_endpoint: http://localhost:3000/data_files/api_create
+
+common_parameters:
+  auth_token: RfmknM43yYnZxtVPfAuH
+
+file_parameter_name: file
+
+files:
+  -
+    path: /Users/georgina/projects/dc21/samples/full_files/weather_station/weather_station_05_min.dat
+    file_parameters:
+      description: some desc
+      type: RAW
+      experiment_id: 78
+  -
+    path: /Users/georgina/projects/dc21/samples/sample1.txt
+    file_parameters:
+      description: another desc
+      type: PROCESSED
+      experiment_id: invalid
