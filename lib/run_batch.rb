@@ -10,4 +10,7 @@ unless File.exist?(config)
   raise "Specified config file not found #{config}"
 end
 
-BatchUploader.new(config).run
+batch_uploader = BatchUploader.new(config)
+batch_uploader.run
+
+puts "Batch completed. Check results in #{File.absolute_path(batch_uploader.log_file_path)}"

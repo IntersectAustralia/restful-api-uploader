@@ -6,10 +6,11 @@ class BatchUploader
 
   attr_accessor :config
   attr_accessor :log_writer
+  attr_accessor :log_file_path
 
   def initialize(config_path)
     self.config = YAML.load_file(config_path)
-    log_file_path = File.join(File.dirname(__FILE__), '..', 'log', 'log.txt')
+    self.log_file_path = File.join(File.dirname(__FILE__), '..', 'log', 'log.txt')
     self.log_writer = ApiCallLogger.new(log_file_path)
   end
 
