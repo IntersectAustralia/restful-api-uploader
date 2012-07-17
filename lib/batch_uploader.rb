@@ -4,6 +4,11 @@ require 'yaml'
 
 class BatchUploader
 
+  TODAY_LONG_FORMAT = '%%today_yyyy-mm-dd%%'
+  YESTERDAY_LONG_FORMAT = '%%yesterday_yyyy-mm-dd%%'
+  TODAY_SHORT_FORMAT = '%%today_yymmdd%%'
+  YESTERDAY_SHORT_FORMAT = '%%yesterday_yymmdd%%'
+
   attr_accessor :config
   attr_accessor :log_writer
   attr_accessor :log_file_path
@@ -45,8 +50,10 @@ class BatchUploader
 
   def do_substitutions(path)
     # Currently we support simple date substitutions, to cater for dated files. More can be added here if needed
-    path.gsub!('%%today_yyyy-mm-dd%%', Date.today.strftime('yyyy-mm-dd'))
-    path.gsub!('%%yesterday_yyyy-mm-dd%%', (Date.today - 1).strftime('yyyy-mm-dd'))
+    path.gsub!(TODAY_LONG_FORMAT, Date.today.strftime('%Y-%m-%d'))
+    path.gsub!(YESTERDAY_LONG_FORMAT, (Date.today - 1).strftime('%Y-%m-%d'))
+    path.gsub!(TODAY_SHORT_FORMAT, Date.today.strftime('%y%m%d'))
+    path.gsub!(YESTERDAY_SHORT_FORMAT, (Date.today - 1).strftime('%y%m%d'))
     path
   end
 end

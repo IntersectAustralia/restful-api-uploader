@@ -58,12 +58,12 @@ describe BatchUploader do
 
     end
 
-    it 'should subsitute date placeholders in filenames' do
+    it 'should substitute date placeholders in filenames' do
       today_dated_sample_path = File.expand_path(File.dirname(__FILE__) + '/../tmp/%%today_yyyy-mm-dd%%.txt')
       yesterday_dated_sample_path = File.expand_path(File.dirname(__FILE__) + '/../tmp/%%yesterday_yyyy-mm-dd%%.txt')
 
-      expected_today_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{Date.today.strftime('yyyy-mm-dd')}.txt")
-      expected_yesterday_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{(Date.today - 1).strftime('yyyy-mm-dd')}.txt")
+      expected_today_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{Date.today.strftime('%Y-%m-%d')}.txt")
+      expected_yesterday_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{(Date.today - 1).strftime('%Y-%m-%d')}.txt")
 
       create_test_file(expected_today_path)
       create_test_file(expected_yesterday_path)
@@ -140,6 +140,20 @@ describe BatchUploader do
 
       uploader = BatchUploader.new(spec_config_path)
       uploader.run
+    end
+  end
+
+  describe 'Date substitutions' do
+    it 'should replace supported replacements strings' do
+      uploader = BatchUploader.new(spec_config_path)
+      uploader.do_substitutions('/path/with/%%today_yyyy-mm-dd%%.stuff').should eq("/path/with/#{Date.today.strftime('%Y-%m-%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%yesterday_yyyy-mm-dd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%Y-%m-%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%today_yymmdd%%.stuff').should eq("/path/with/#{Date.today.strftime('%y%m%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%yesterday_yymmdd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%y%m%d')}.stuff")
+    end
+
+    it 'should leave other paths alone' do
+      BatchUploader.new(spec_config_path).do_substitutions('some/other/text/').should eq('some/other/text/')
     end
   end
 end
