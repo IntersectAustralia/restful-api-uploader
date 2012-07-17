@@ -28,7 +28,7 @@ class BatchUploader
       params = config['common_parameters']
       params.merge!(file_config['file_parameters'])
 
-      file_path = file_config['path']
+      file_path = do_substitutions(file_config['path'])
       file = File.new(file_path)
 
       params['file'] = file
@@ -41,5 +41,12 @@ class BatchUploader
     rescue
       log_writer.log_error($!)
     end
+  end
+
+  def do_substitutions(path)
+    # Currently we support simple date substitutions, to cater for dated files. More can be added here if needed
+    path.gsub!('%%today_yyyy-mm-dd%%', Date.today.strftime('yyyy-mm-dd'))
+    path.gsub!('%%yesterday_yyyy-mm-dd%%', (Date.today - 1).strftime('yyyy-mm-dd'))
+    path
   end
 end

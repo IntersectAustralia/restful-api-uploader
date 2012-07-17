@@ -5,16 +5,15 @@ require File.expand_path(File.dirname(__FILE__) + '/../lib/batch_uploader')
 describe BatchUploader do
   let(:template_config_path) { File.expand_path(File.dirname(__FILE__) + '/resources/config.yml') }
   let(:spec_config_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/config.yml') }
-  let(:sample1_path) { File.expand_path(File.dirname(__FILE__) + '/resources/weather_station.dat') }
-  let(:sample2_path) { File.expand_path(File.dirname(__FILE__) + '/resources/sample1.txt') }
+  let(:sample1_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/weather_station.dat') }
+  let(:sample2_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/sample1.txt') }
 
   before do
     # Update the YAML config with absolute paths - in a real deployment it must have absolute paths, here we need to
     # update it so that the tests can work on a local copy in any directory
-    buffer = YAML::load_file(template_config_path)
-    buffer['files'][0]['path'] = sample1_path
-    buffer['files'][1]['path'] = sample2_path
-    File.open(spec_config_path, 'w+') { |f| f.write(YAML::dump(buffer)) }
+    rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample2_path])
+    create_test_file(sample1_path)
+    create_test_file(sample2_path)
   end
 
   describe 'Reading the config' do
@@ -57,6 +56,36 @@ describe BatchUploader do
       uploader = BatchUploader.new(spec_config_path)
       uploader.run
 
+    end
+
+    it 'should subsitute date placeholders in filenames' do
+      today_dated_sample_path = File.expand_path(File.dirname(__FILE__) + '/../tmp/%%today_yyyy-mm-dd%%.txt')
+      yesterday_dated_sample_path = File.expand_path(File.dirname(__FILE__) + '/../tmp/%%yesterday_yyyy-mm-dd%%.txt')
+
+      expected_today_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{Date.today.strftime('yyyy-mm-dd')}.txt")
+      expected_yesterday_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{(Date.today - 1).strftime('yyyy-mm-dd')}.txt")
+
+      create_test_file(expected_today_path)
+      create_test_file(expected_yesterday_path)
+
+      rewrite_paths(template_config_path, spec_config_path, [today_dated_sample_path, yesterday_dated_sample_path])
+
+      logger = stub('mock logger')
+      ApiCallLogger.stub(:new).and_return(logger)
+      logger.stub(:log_request)
+      logger.stub(:log_response)
+      logger.stub(:close)
+
+      RestClient.should_receive(:post) do |url, params, settings|
+        params['file'].should be_a(File)
+        params['file'].path.should eq(expected_today_path)
+      end
+      RestClient.should_receive(:post) do |url, params, settings|
+        params['file'].should be_a(File)
+        params['file'].path.should eq(expected_yesterday_path)
+      end
+      uploader = BatchUploader.new(spec_config_path)
+      uploader.run
     end
 
     it 'should pass the response to the logger' do
@@ -113,4 +142,16 @@ describe BatchUploader do
       uploader.run
     end
   end
+end
+
+def rewrite_paths(template_path, output_path, files)
+  buffer = YAML::load_file(template_path)
+  files.each_with_index do |path, index|
+    buffer['files'][index]['path'] = path
+  end
+  File.open(output_path, 'w+') { |f| f.write(YAML::dump(buffer)) }
+end
+
+def create_test_file(path)
+  File.open(path, 'w+') { |f| f.write('some random text') }
 end
