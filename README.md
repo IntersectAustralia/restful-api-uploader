@@ -9,6 +9,6 @@ is provided via a YAML file, which specifies the server location and then a set 
 sample_config.yml in the root directory for an example. Currently the response is just logged to a file, and nothing more
 is done. This could be extended in the future to do more elaborate handling of the response.
 
-This was built by [Intersect Australia](http://www.intersect.org.au/) for the Hawkesbury Institute for the Environment at the University of Western Sydney as part of [ANDS-Funded Data Capture Project (DC21)](http://www.ands.org.au) project DC21.
+This was built by [Intersect Australia](http://www.intersect.org.au/) for the Hawkesbury Institute for the Environment at the University of Western Sydney as part of [ANDS-Funded Data Capture Project (DC21)](http://www.ands.org.au).
 
 This code is licensed under the GNU GPL v3 license - see LICENSE.txt
