@@ -7,6 +7,8 @@ describe BatchUploader do
   let(:spec_config_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/config.yml') }
   let(:sample1_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/weather_station.dat') }
   let(:sample2_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/sample1.txt') }
+  let(:sample_no_extension_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/sample1') }
+  let(:backup_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/backup/') }
 
   before do
     # Update the YAML config with absolute paths - in a real deployment it must have absolute paths, here we need to
@@ -14,6 +16,7 @@ describe BatchUploader do
     rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample2_path])
     create_test_file(sample1_path)
     create_test_file(sample2_path)
+    create_test_file(sample_no_extension_path)
   end
 
   describe 'Reading the config' do
@@ -146,22 +149,63 @@ describe BatchUploader do
   describe 'Date substitutions' do
     it 'should replace supported replacements strings' do
       uploader = BatchUploader.new(spec_config_path)
-      uploader.do_substitutions('/path/with/%%today_yyyy-mm-dd%%.stuff').should eq("/path/with/#{Date.today.strftime('%Y-%m-%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%yesterday_yyyy-mm-dd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%Y-%m-%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%today_yymmdd%%.stuff').should eq("/path/with/#{Date.today.strftime('%y%m%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%yesterday_yymmdd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%y%m%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%today_yyyy-mm-dd%%.stuff',nil).should eq("/path/with/#{Date.today.strftime('%Y-%m-%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%yesterday_yyyy-mm-dd%%.stuff',nil).should eq("/path/with/#{(Date.today - 1).strftime('%Y-%m-%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%today_yymmdd%%.stuff', nil).should eq("/path/with/#{Date.today.strftime('%y%m%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%yesterday_yymmdd%%.stuff', nil).should eq("/path/with/#{(Date.today - 1).strftime('%y%m%d')}.stuff")
     end
 
     it 'should leave other paths alone' do
-      BatchUploader.new(spec_config_path).do_substitutions('some/other/text/').should eq('some/other/text/')
+      BatchUploader.new(spec_config_path).do_substitutions('some/other/text/',nil).should eq('some/other/text/')
+    end
+  end
+
+  describe 'Backup' do
+    before(:each) do
+      Dir.mkdir(backup_path)
+    end
+
+    after(:each) do
+      FileUtils.rm_r backup_path
+    end
+
+    it 'moves the file to the backup directory' do
+      rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
+      logger = mock('mock logger')
+      ApiCallLogger.stub(:new).and_return(logger)
+      logger.stub(:log_request)
+      logger.stub(:log_response)
+      logger.stub(:close)
+
+      backup_sample_1 = "#{backup_path}/weather_station_#{Date.today.strftime("%Y-%m-%d")}.dat"
+      backup_sample_no_extension = "#{backup_path}/sample1_#{Date.today.strftime("%Y-%m-%d")}"
+
+      RestClient.should_receive(:post) do |url, params, settings|
+        params['file'].should be_a(File)
+        params['file'].path.should eq(backup_sample_1)
+      end
+
+      RestClient.should_receive(:post) do |url, params, settings|
+        params['file'].should be_a(File)
+        params['file'].path.should eq(backup_sample_no_extension)
+      end
+
+      uploader = BatchUploader.new(spec_config_path)
+      uploader.run
+
+      File.exists?(backup_sample_1).should be true
+      File.exists?(backup_sample_no_extension).should be true
     end
   end
 end
 
-def rewrite_paths(template_path, output_path, files)
+def rewrite_paths(template_path, output_path, files, backup_path = nil)
   buffer = YAML::load_file(template_path)
   files.each_with_index do |path, index|
     buffer['files'][index]['path'] = path
+    if backup_path
+      buffer['files'][index]['file_parameters']['backup'] = backup_path
+    end
   end
   File.open(output_path, 'w+') { |f| f.write(YAML::dump(buffer)) }
 end

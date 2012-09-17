@@ -33,7 +33,7 @@ class BatchUploader
       params = config['common_parameters']
       params.merge!(file_config['file_parameters'])
 
-      file_path = do_substitutions(file_config['path'])
+      file_path = do_substitutions(file_config['path'], file_config['file_parameters']['backup'])
       file = File.new(file_path)
 
       params['file'] = file
@@ -48,12 +48,22 @@ class BatchUploader
     end
   end
 
-  def do_substitutions(path)
-    # Currently we support simple date substitutions, to cater for dated files. More can be added here if needed
-    path.gsub!(TODAY_LONG_FORMAT, Date.today.strftime('%Y-%m-%d'))
-    path.gsub!(YESTERDAY_LONG_FORMAT, (Date.today - 1).strftime('%Y-%m-%d'))
-    path.gsub!(TODAY_SHORT_FORMAT, Date.today.strftime('%y%m%d'))
-    path.gsub!(YESTERDAY_SHORT_FORMAT, (Date.today - 1).strftime('%y%m%d'))
-    path
+  def do_substitutions(path,backup)
+    if (backup)
+      file_extension = File.extname(path)
+      basename = File.basename(path, file_extension)
+
+      move_to = File.join(backup, "#{basename}_#{Date.today.strftime("%Y-%m-%d")}#{file_extension}")
+     
+      FileUtils.mv path, move_to
+      move_to
+    else
+      # Currently we support simple date substitutions, to cater for dated files. More can be added here if needed
+      path.gsub!(TODAY_LONG_FORMAT, Date.today.strftime('%Y-%m-%d'))
+      path.gsub!(YESTERDAY_LONG_FORMAT, (Date.today - 1).strftime('%Y-%m-%d'))
+      path.gsub!(TODAY_SHORT_FORMAT, Date.today.strftime('%y%m%d'))
+      path.gsub!(YESTERDAY_SHORT_FORMAT, (Date.today - 1).strftime('%y%m%d'))
+      path
+    end
   end
 end
