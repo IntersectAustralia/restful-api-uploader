@@ -35,9 +35,10 @@ class BatchUploader
 
       input_file_path = file_config['path']
       backup_path = file_config['file_parameters']['backup']
+      perform_backup = !backup_path.nil? && !backup_path.empty?
 
       file_to_upload_path = do_substitutions(input_file_path)
-      file_to_upload_path = do_backup(input_file_path, backup_path) if backup_path
+      file_to_upload_path = do_backup(input_file_path, backup_path) if perform_backup
       file = File.new(file_to_upload_path)
 
       params['file'] = file
@@ -45,10 +46,16 @@ class BatchUploader
       log_writer.log_request(params, url)
       response = RestClient.post url, params, accept: :json
       log_writer.log_response(response)
+      # remove the original if the upload succeeded
+      FileUtils.rm input_file_path if perform_backup
     rescue RestClient::Exception => e
       log_writer.log_response(e.response)
+      # remove the backup if we failed to upload the file
+      FileUtils.rm file_to_upload_path if perform_backup
     rescue
       log_writer.log_error($!)
+      # remove the backup if we failed to upload the file
+      FileUtils.rm file_to_upload_path if perform_backup
     end
   end
 
@@ -58,7 +65,7 @@ class BatchUploader
 
     move_to = File.join(backup_path, "#{basename}_#{Date.today.strftime("%Y-%m-%d")}#{file_extension}")
 
-    FileUtils.mv input_file_path, move_to
+    FileUtils.cp input_file_path, move_to
     move_to
   end
 

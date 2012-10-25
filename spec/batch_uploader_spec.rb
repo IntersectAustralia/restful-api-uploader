@@ -169,7 +169,7 @@ describe BatchUploader do
       FileUtils.rm_r backup_path
     end
 
-    it 'moves the file to the backup directory' do
+    it 'copies the file to the backup directory and deletes the original on success' do
       rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
       logger = mock('mock logger')
       ApiCallLogger.stub(:new).and_return(logger)
@@ -195,6 +195,46 @@ describe BatchUploader do
 
       File.exists?(backup_sample_1).should be true
       File.exists?(backup_sample_no_extension).should be true
+      File.exists?(sample1_path).should be false
+      File.exists?(sample_no_extension_path).should be false
+    end
+
+    it 'copies the file to the backup directory and deletes the backup on failure' do
+
+      uploader = BatchUploader.new(spec_config_path)
+      uploader.run
+
+      rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
+      logger = mock('mock logger')
+      ApiCallLogger.stub(:new).and_return(logger)
+      logger.should_receive(:log_request).twice
+      logger.should_receive(:log_error).once
+      logger.should_receive(:log_response).once
+      logger.should_receive(:close).once
+
+      backup_sample_1 = "#{backup_path}/weather_station_#{Date.today.strftime("%Y-%m-%d")}.dat"
+      backup_sample_no_extension = "#{backup_path}/sample1_#{Date.today.strftime("%Y-%m-%d")}"
+
+      RestClient.should_receive(:post) do |url, params, settings|
+        params['file'].should be_a(File)
+        params['file'].path.should eq(backup_sample_1)
+      end
+
+      RestClient.should_receive(:post) do |url, params, settings|
+        params['file'].should be_a(File)
+        params['file'].path.should eq(backup_sample_no_extension)
+      end.and_throw("error")
+
+      uploader = BatchUploader.new(spec_config_path)
+      uploader.run
+
+      #sample 1 succeeded
+      File.exists?(backup_sample_1).should be true
+      File.exists?(sample1_path).should be false
+
+      #sample no ext failed
+      File.exists?(backup_sample_no_extension).should be false
+      File.exists?(sample_no_extension_path).should be true
     end
   end
 end
