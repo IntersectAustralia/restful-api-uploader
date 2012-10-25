@@ -149,14 +149,14 @@ describe BatchUploader do
   describe 'Date substitutions' do
     it 'should replace supported replacements strings' do
       uploader = BatchUploader.new(spec_config_path)
-      uploader.do_substitutions('/path/with/%%today_yyyy-mm-dd%%.stuff',nil).should eq("/path/with/#{Date.today.strftime('%Y-%m-%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%yesterday_yyyy-mm-dd%%.stuff',nil).should eq("/path/with/#{(Date.today - 1).strftime('%Y-%m-%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%today_yymmdd%%.stuff', nil).should eq("/path/with/#{Date.today.strftime('%y%m%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%yesterday_yymmdd%%.stuff', nil).should eq("/path/with/#{(Date.today - 1).strftime('%y%m%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%today_yyyy-mm-dd%%.stuff').should eq("/path/with/#{Date.today.strftime('%Y-%m-%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%yesterday_yyyy-mm-dd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%Y-%m-%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%today_yymmdd%%.stuff').should eq("/path/with/#{Date.today.strftime('%y%m%d')}.stuff")
+      uploader.do_substitutions('/path/with/%%yesterday_yymmdd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%y%m%d')}.stuff")
     end
 
     it 'should leave other paths alone' do
-      BatchUploader.new(spec_config_path).do_substitutions('some/other/text/',nil).should eq('some/other/text/')
+      BatchUploader.new(spec_config_path).do_substitutions('some/other/text/').should eq('some/other/text/')
     end
   end
 
