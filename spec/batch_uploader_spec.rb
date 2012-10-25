@@ -169,6 +169,37 @@ describe BatchUploader do
       FileUtils.rm_r backup_path
     end
 
+    it 'should abort the backup if the target backup file already exists' do
+      rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
+
+      backup_sample_1 = "#{backup_path}/weather_station_#{Date.today.strftime("%Y-%m-%d")}.dat"
+      backup_sample_no_extension = "#{backup_path}/sample1_#{Date.today.strftime("%Y-%m-%d")}"
+
+      logger = mock('mock logger')
+      ApiCallLogger.stub(:new).and_return(logger)
+      logger.should_receive(:log_request).once
+      logger.should_receive(:log_error).with(BackupExistsException.new(backup_sample_1))
+      logger.should_receive(:log_response).once
+      logger.should_receive(:close).once
+
+      # make the backup file already exist
+      File.open(backup_sample_1, 'w') { |file| file.puts "file with content" }
+      File.exists?(backup_sample_1).should be true
+
+      #only the other file should be sent
+      RestClient.should_receive(:post) do |url, params, settings|
+        params['file'].should be_a(File)
+        params['file'].path.should eq(backup_sample_no_extension)
+      end
+
+      uploader = BatchUploader.new(spec_config_path)
+      uploader.run
+
+      # both the original and the pre-existing backup should still be in place
+      File.exists?(backup_sample_1).should be true
+      File.exists?(sample1_path).should be true
+    end
+
     it 'copies the file to the backup directory and deletes the original on success' do
       rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
       logger = mock('mock logger')

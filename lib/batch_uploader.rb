@@ -48,6 +48,8 @@ class BatchUploader
       log_writer.log_response(response)
       # remove the original if the upload succeeded
       FileUtils.rm input_file_path if perform_backup
+    rescue BackupExistsException => e
+      log_writer.log_error(e)
     rescue RestClient::Exception => e
       log_writer.log_response(e.response)
       # remove the backup if we failed to upload the file
@@ -65,6 +67,9 @@ class BatchUploader
 
     move_to = File.join(backup_path, "#{basename}_#{Date.today.strftime("%Y-%m-%d")}#{file_extension}")
 
+    if File.exist?(move_to)
+      raise BackupExistsException.new(move_to)
+    end
     FileUtils.cp input_file_path, move_to
     move_to
   end
@@ -76,5 +81,24 @@ class BatchUploader
     path.gsub!(TODAY_SHORT_FORMAT, Date.today.strftime('%y%m%d'))
     path.gsub!(YESTERDAY_SHORT_FORMAT, (Date.today - 1).strftime('%y%m%d'))
     path
+  end
+end
+
+class BackupExistsException < RuntimeError
+  def initialize(path)
+    @path = path
+  end
+
+  def backup_path
+    @path
+  end
+
+  def ==(other)
+    return false unless other.is_a?(BackupExistsException)
+    backup_path == other.backup_path
+  end
+
+  def message
+    "Backup file #{@path} already exists. Upload of this file has been aborted."
   end
 end
