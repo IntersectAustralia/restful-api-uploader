@@ -1,104 +1,92 @@
 require File.expand_path(File.dirname(__FILE__) + '/api_call_logger')
+require File.expand_path(File.dirname(__FILE__) + '/file_uploader')
 require 'rest-client'
 require 'yaml'
 
 class BatchUploader
 
-  TODAY_LONG_FORMAT = '%%today_yyyy-mm-dd%%'
-  YESTERDAY_LONG_FORMAT = '%%yesterday_yyyy-mm-dd%%'
-  TODAY_SHORT_FORMAT = '%%today_yymmdd%%'
-  YESTERDAY_SHORT_FORMAT = '%%yesterday_yymmdd%%'
-
-  attr_accessor :config
-  attr_accessor :log_writer
-  attr_accessor :log_file_path
+  attr_accessor :config, :log_writer, :log_file_path, :url, :common_params, :file_parameter_name, :file_uploader
 
   def initialize(config_path)
-    self.config = YAML.load_file(config_path)
     self.log_file_path = File.join(File.dirname(__FILE__), '..', 'log', 'log.txt')
     self.log_writer = ApiCallLogger.new(log_file_path)
+
+    begin
+      self.config = YAML.load_file(config_path)
+      self.url = config['api_endpoint']
+      self.common_params = config['common_parameters']
+      self.file_parameter_name = config['file_parameter_name']
+      self.file_uploader = FileUploader.new(log_writer, file_parameter_name, url)
+      raise "Supplied YML file did not contain an array named 'files'" unless config['files'].is_a?(Array)
+    rescue => e
+      log_writer.log_general_error('Error while loading configuration', e)
+      log_writer.close
+      raise e
+    end
+
   end
 
   def run
     begin
-      config['files'].each { |file_config| upload_file(file_config) }
+      config['files'].each do |group|
+        begin
+          process_file_group(group)
+        rescue => e
+          log_writer.log_group_error(group, e)
+        end
+      end
     ensure
       log_writer.close
     end
   end
 
-  def upload_file(file_config)
+
+  def process_file_group(file_config)
+    file_params = file_config['file_parameters']
+    source_path = file_config['source_directory']
+    file_pattern = file_config['file']
+    transfer_to_path = file_config['transfer_to_directory']
+    # make sure the source to path exists - this will raise an exception if it doesn't exist
+    Dir.new(source_path)
+    # make sure the transfer to path exists - this will raise an exception if it doesn't exist
+    Dir.new(transfer_to_path)
+
+    post_params = {}
+    post_params.merge!(common_params)
+    post_params.merge!(file_params)
+
+    if file_pattern.is_a?(String)
+      upload_file(source_path, file_pattern, post_params, transfer_to_path)
+    elsif file_pattern.is_a?(Regexp)
+      found_any = false
+      Dir.foreach(source_path) do |file_name|
+        if file_pattern =~ file_name
+          upload_file(source_path, file_name, post_params, transfer_to_path)
+          found_any = true
+        end
+      end
+      raise "Did not find any files matching regular expression #{file_pattern}" unless found_any
+    else
+      raise "Unrecognised file name, must be a String or Regexp, found #{file_pattern.class}"
+    end
+  end
+
+  def upload_file(source_path, file_name, post_params, transfer_to_path)
     begin
-      url = config['api_endpoint']
-      params = config['common_parameters']
-      params.merge!(file_config['file_parameters'])
+      file_path = File.join(source_path, file_name)
+      log_writer.log_start(file_path)
+      # make sure the file exists - this will raise an exception if it doesn't
+      File.new(file_path)
+      # make sure that the backup file doesn't exist
+      dest_path = File.join(transfer_to_path, file_name)
+      raise "Transfer to file already exists #{dest_path}" if File.exist?(dest_path)
 
-      input_file_path = file_config['path']
-      backup_path = file_config['file_parameters']['backup']
-      perform_backup = !backup_path.nil? && !backup_path.empty?
-
-      file_to_upload_path = do_substitutions(input_file_path)
-      file_to_upload_path = do_backup(input_file_path, backup_path) if perform_backup
-      file = File.new(file_to_upload_path)
-
-      params['file'] = file
-
-      log_writer.log_request(params, url)
-      response = RestClient.post url, params, accept: :json
-      log_writer.log_response(response)
-      # remove the original if the upload succeeded
-      FileUtils.rm input_file_path if perform_backup
-    rescue BackupExistsException => e
-      log_writer.log_error(e)
-    rescue RestClient::Exception => e
-      log_writer.log_response(e.response)
-      # remove the backup if we failed to upload the file
-      FileUtils.rm file_to_upload_path if perform_backup
+      success = file_uploader.upload(file_path, post_params)
+      if success
+        FileUtils.mv File.new(file_path), dest_path
+      end
     rescue
       log_writer.log_error($!)
-      # remove the backup if we failed to upload the file
-      FileUtils.rm file_to_upload_path if perform_backup
     end
-  end
-
-  def do_backup(input_file_path, backup_path)
-    file_extension = File.extname(input_file_path)
-    basename = File.basename(input_file_path, file_extension)
-
-    move_to = File.join(backup_path, "#{basename}_#{Date.today.strftime("%Y-%m-%d")}#{file_extension}")
-
-    if File.exist?(move_to)
-      raise BackupExistsException.new(move_to)
-    end
-    FileUtils.cp input_file_path, move_to
-    move_to
-  end
-
-  def do_substitutions(path)
-    # Currently we support simple date substitutions, to cater for dated files. More can be added here if needed
-    path.gsub!(TODAY_LONG_FORMAT, Date.today.strftime('%Y-%m-%d'))
-    path.gsub!(YESTERDAY_LONG_FORMAT, (Date.today - 1).strftime('%Y-%m-%d'))
-    path.gsub!(TODAY_SHORT_FORMAT, Date.today.strftime('%y%m%d'))
-    path.gsub!(YESTERDAY_SHORT_FORMAT, (Date.today - 1).strftime('%y%m%d'))
-    path
-  end
-end
-
-class BackupExistsException < RuntimeError
-  def initialize(path)
-    @path = path
-  end
-
-  def backup_path
-    @path
-  end
-
-  def ==(other)
-    return false unless other.is_a?(BackupExistsException)
-    backup_path == other.backup_path
-  end
-
-  def message
-    "Backup file #{@path} already exists. Upload of this file has been aborted."
   end
 end

@@ -3,284 +3,406 @@ require 'rubygems'
 require File.expand_path(File.dirname(__FILE__) + '/../lib/batch_uploader')
 
 describe BatchUploader do
-  let(:template_config_path) { File.expand_path(File.dirname(__FILE__) + '/resources/config.yml') }
-  let(:spec_config_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/config.yml') }
-  let(:sample1_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/weather_station.dat') }
-  let(:sample2_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/sample1.txt') }
-  let(:sample_no_extension_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/sample1') }
-  let(:backup_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/backup/') }
 
-  before do
-    # Update the YAML config with absolute paths - in a real deployment it must have absolute paths, here we need to
-    # update it so that the tests can work on a local copy in any directory
-    rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample2_path])
+  let(:sample1_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/weather_station_01.dat') }
+  let(:sample2_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/weather_station_02.dat') }
+  let(:sample3_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/aweather_station_02.dat') }
+  let(:sample4_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/sample1.txt') }
+  let(:config_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/config.yml') }
+  let(:source_files_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp') }
+  let(:transfer_to_path) { File.expand_path(File.dirname(__FILE__) + '/../tmp/transfer_to') }
+  let(:transfer_to_path_2) { File.expand_path(File.dirname(__FILE__) + '/../tmp/different') }
+
+  before(:each) do
     create_test_file(sample1_path)
     create_test_file(sample2_path)
-    create_test_file(sample_no_extension_path)
+    create_test_file(sample3_path)
+    create_test_file(sample4_path)
+
+    FileUtils.mkdir(transfer_to_path) unless Dir.exist?(transfer_to_path)
+    FileUtils.mkdir(transfer_to_path_2) unless Dir.exist?(transfer_to_path_2)
   end
 
-  describe 'Reading the config' do
-    it 'should read the YAML configuration correctly' do
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.config['api_endpoint'].should eq('http://localhost:3000/data_files/api_create')
-    end
+  after(:each) do
+    FileUtils.rm_r(transfer_to_path)
+    FileUtils.rm_r(transfer_to_path_2)
   end
 
-  describe 'Sending files' do
-    it 'should run through each file in the YAML config and send it to the API endpoint with the correct params' do
-      logger = stub('mock logger')
-      ApiCallLogger.stub(:new).and_return(logger)
-      logger.stub(:log_request)
-      logger.stub(:log_response)
-      logger.stub(:close)
+  describe 'Read config' do
+    #TODO: should we check basic parameters are solid?
+  end
 
-      RestClient.should_receive(:post) do |url, params, settings|
-        url.should eq('http://localhost:3000/data_files/api_create')
-        settings.should eq({accept: :json})
-        params.size.should eq(5)
-        params['auth_token'].should eq('RfmknM43yYnZxtVPfAuH')
-        params['experiment_id'].should eq(78)
-        params['type'].should eq('RAW')
-        params['description'].should eq('some desc')
-        params['file'].should be_a(File)
-        params['file'].path.should eq(sample1_path)
-      end
-      RestClient.should_receive(:post) do |url, params, settings|
-        url.should eq('http://localhost:3000/data_files/api_create')
-        settings.should eq({accept: :json})
-        params.size.should eq(5)
-        params['auth_token'].should eq('RfmknM43yYnZxtVPfAuH')
-        params['experiment_id'].should eq('invalid')
-        params['type'].should eq('PROCESSED')
-        params['description'].should eq('another desc')
-        params['file'].should be_a(File)
-        params['file'].path.should eq(sample2_path)
-      end
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
+  describe 'Validating each file group config' do
+    it 'should abort the group and log an error if source path does not exist' do
+      yml =
+          "" "
+        api_endpoint: http://localhost:3000/data_files/api_create
+        common_parameters:
+          auth_token: 1QpgMVLEkuopbzU4Jwq1
+        file_parameter_name: file
 
-    end
+        files:
+          -
+            source_directory: /I/dont/exist
+            file: !ruby/regexp /\\Aweather_station_\\d{2}.dat\\z/
+            transfer_to_directory: #{transfer_to_path}
+            file_parameters:
+              type: UNKNOWN
+              experiment_id: 78
+              tag_names: 'Photo,Video'
+          -
+            source_directory: #{source_files_path}
+            file: sample1.txt
+            transfer_to_directory: #{transfer_to_path_2}
+            file_parameters:
+              type: RAW
+              experiment_id: 79
 
-    it 'should substitute date placeholders in filenames' do
-      today_dated_sample_path = File.expand_path(File.dirname(__FILE__) + '/../tmp/%%today_yyyy-mm-dd%%.txt')
-      yesterday_dated_sample_path = File.expand_path(File.dirname(__FILE__) + '/../tmp/%%yesterday_yyyy-mm-dd%%.txt')
-
-      expected_today_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{Date.today.strftime('%Y-%m-%d')}.txt")
-      expected_yesterday_path = File.expand_path(File.dirname(__FILE__) + "/../tmp/#{(Date.today - 1).strftime('%Y-%m-%d')}.txt")
-
-      create_test_file(expected_today_path)
-      create_test_file(expected_yesterday_path)
-
-      rewrite_paths(template_config_path, spec_config_path, [today_dated_sample_path, yesterday_dated_sample_path])
+        " ""
+      write_yml(yml, config_path)
 
       logger = stub('mock logger')
       ApiCallLogger.stub(:new).and_return(logger)
+      logger.stub(:log_start)
       logger.stub(:log_request)
       logger.stub(:log_response)
       logger.stub(:close)
-
-      RestClient.should_receive(:post) do |url, params, settings|
-        params['file'].should be_a(File)
-        params['file'].path.should eq(expected_today_path)
+      logger.should_receive(:log_group_error) do |group, ex|
+        ex.message.should eq("No such file or directory - /I/dont/exist")
       end
-      RestClient.should_receive(:post) do |url, params, settings|
-        params['file'].should be_a(File)
-        params['file'].path.should eq(expected_yesterday_path)
+
+      uploader = stub('mock uploader')
+      FileUploader.stub(:new).and_return(uploader)
+      expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                               'type' => 'RAW',
+                               'experiment_id' => 79}
+      uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
+
+      uploader = BatchUploader.new(config_path)
+      uploader.run
+
+    end
+    it 'should abort and log an error if transfer to path does not exist' do
+      yml =
+          "" "
+        api_endpoint: http://localhost:3000/data_files/api_create
+        common_parameters:
+          auth_token: 1QpgMVLEkuopbzU4Jwq1
+        file_parameter_name: file
+
+        files:
+          -
+            source_directory: #{source_files_path}
+            file: !ruby/regexp /\\Aweather_station_\\d{2}.dat\\z/
+            transfer_to_directory: /I/dont/exist
+            file_parameters:
+              type: UNKNOWN
+              experiment_id: 78
+              tag_names: 'Photo,Video'
+          -
+            source_directory: #{source_files_path}
+            file: sample1.txt
+            transfer_to_directory: #{transfer_to_path_2}
+            file_parameters:
+              type: RAW
+              experiment_id: 79
+
+        " ""
+      write_yml(yml, config_path)
+
+      logger = stub('mock logger')
+      ApiCallLogger.stub(:new).and_return(logger)
+      logger.stub(:log_start)
+      logger.stub(:log_request)
+      logger.stub(:log_response)
+      logger.stub(:close)
+      logger.should_receive(:log_group_error) do |group, ex|
+        ex.message.should eq("No such file or directory - /I/dont/exist")
       end
-      uploader = BatchUploader.new(spec_config_path)
+
+      uploader = stub('mock uploader')
+      FileUploader.stub(:new).and_return(uploader)
+      expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                               'type' => 'RAW',
+                               'experiment_id' => 79}
+      uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
+
+      uploader = BatchUploader.new(config_path)
+      uploader.run
+
+    end
+    it 'should abort and log an error if single filename (string) does not exist' do
+      yml =
+          "" "
+        api_endpoint: http://localhost:3000/data_files/api_create
+        common_parameters:
+          auth_token: 1QpgMVLEkuopbzU4Jwq1
+        file_parameter_name: file
+
+        files:
+          -
+            source_directory: #{source_files_path}
+            file: !ruby/regexp /\\Aweather_station_\\d{2}.dat\\z/
+            transfer_to_directory: #{transfer_to_path}
+            file_parameters:
+              type: UNKNOWN
+              experiment_id: 78
+              tag_names: 'Photo,Video'
+          -
+            source_directory: #{source_files_path}
+            file: nonexistent.txt
+            transfer_to_directory: #{transfer_to_path_2}
+            file_parameters:
+              type: RAW
+              experiment_id: 79
+
+        " ""
+      write_yml(yml, config_path)
+
+      logger = stub('mock logger')
+      ApiCallLogger.stub(:new).and_return(logger)
+      logger.stub(:log_start)
+      logger.stub(:log_request)
+      logger.stub(:log_response)
+      logger.stub(:close)
+      logger.should_receive(:log_error) do |ex|
+        ex.message.should eq("No such file or directory - #{source_files_path}/nonexistent.txt")
+      end
+
+      uploader = stub('mock uploader')
+      FileUploader.stub(:new).and_return(uploader)
+      expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                               'type' => 'UNKNOWN',
+                               'experiment_id' => 78,
+                               'tag_names' => "Photo,Video"}
+      uploader.should_receive(:upload).with(sample1_path, expected_post_params1)
+      uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
+
+      uploader = BatchUploader.new(config_path)
       uploader.run
     end
-
-    it 'should pass the response to the logger' do
-      logger = mock('mock logger')
-      ApiCallLogger.stub(:new).and_return(logger)
-
-      response1 = mock('response1')
-      response2 = mock('response2')
-      RestClient.should_receive(:post).and_return(response1)
-      RestClient.should_receive(:post).and_return(response2)
-
-      logger.should_receive(:log_request).twice
-      logger.should_receive(:log_response).with(response1)
-      logger.should_receive(:log_response).with(response2)
-      logger.should_receive(:close).once
-
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
+    it 'should abort and log an error if no files match the regex' do
+      pending
     end
-
-    it 'should still pass the response to the logger when a rest client exception is raised' do
-      logger = mock('mock logger')
-      ApiCallLogger.stub(:new).and_return(logger)
-
-      response1 = mock('response1')
-      response2 = mock('response2')
-      RestClient.should_receive(:post).and_return(response1)
-      RestClient.should_receive(:post).and_raise(RestClient::Exception.new(response2, 400))
-
-      logger.should_receive(:log_request).twice
-      logger.should_receive(:log_response).with(response1)
-      logger.should_receive(:log_response).with(response2)
-      logger.should_receive(:close).once
-
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
+    it 'should abort and log an error if the regex is badly formed' do
+      pending
     end
+    describe 'should abort and log an error if the file already exists in the transfer_to directory' do
+      it 'should work for a single file' do
+        yml =
+            "" "
+          api_endpoint: http://localhost:3000/data_files/api_create
+          common_parameters:
+            auth_token: 1QpgMVLEkuopbzU4Jwq1
+          file_parameter_name: file
 
-    it 'should log an error if some other type of exception is raised' do
-      logger = mock('mock logger')
-      ApiCallLogger.stub(:new).and_return(logger)
+          files:
+            -
+              source_directory: #{source_files_path}
+              file: !ruby/regexp /\\Aweather_station_\\d{2}.dat\\z/
+              transfer_to_directory: #{transfer_to_path}
+              file_parameters:
+                type: UNKNOWN
+                experiment_id: 78
+                tag_names: 'Photo,Video'
+            -
+              source_directory: #{source_files_path}
+              file: sample1.txt
+              transfer_to_directory: #{transfer_to_path_2}
+              file_parameters:
+                type: RAW
+                experiment_id: 79
 
-      error = Errno::ECONNREFUSED.new #simulate connection refused
-      response2 = mock('response2')
-      RestClient.should_receive(:post).and_raise(error)
-      RestClient.should_receive(:post).and_return(response2)
+          " ""
+        write_yml(yml, config_path)
+        uploader = stub('mock uploader')
+        FileUploader.stub(:new).and_return(uploader)
+        logger = stub('mock logger')
+        ApiCallLogger.stub(:new).and_return(logger)
+        logger.stub(:log_start)
+        logger.stub(:log_request)
+        logger.stub(:log_response)
+        logger.stub(:close)
+        logger.should_receive(:log_error) do |ex|
+          ex.message.should eq("Transfer to file already exists #{transfer_to_path_2}/sample1.txt")
+        end
 
-      logger.should_receive(:log_request).twice
-      logger.should_receive(:log_error).with(error)
-      logger.should_receive(:log_response).with(response2)
-      logger.should_receive(:close).once
+        create_test_file(File.join(transfer_to_path_2, 'sample1.txt'))
+        expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                                 'type' => 'UNKNOWN',
+                                 'experiment_id' => 78,
+                                 'tag_names' => "Photo,Video"}
+        uploader.should_receive(:upload).with(sample1_path, expected_post_params1)
+        uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
 
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
+        uploader = BatchUploader.new(config_path)
+        uploader.run
+
+      end
+
+      it 'should work for a file in a matched set from a regex - and should continue with other files in set' do
+        yml =
+            "" "
+          api_endpoint: http://localhost:3000/data_files/api_create
+          common_parameters:
+            auth_token: 1QpgMVLEkuopbzU4Jwq1
+          file_parameter_name: file
+
+          files:
+            -
+              source_directory: #{source_files_path}
+              file: !ruby/regexp /\\Aweather_station_\\d{2}.dat\\z/
+              transfer_to_directory: #{transfer_to_path}
+              file_parameters:
+                type: UNKNOWN
+                experiment_id: 78
+                tag_names: 'Photo,Video'
+            -
+              source_directory: #{source_files_path}
+              file: sample1.txt
+              transfer_to_directory: #{transfer_to_path_2}
+              file_parameters:
+                type: RAW
+                experiment_id: 79
+
+          " ""
+        write_yml(yml, config_path)
+        uploader = stub('mock uploader')
+        FileUploader.stub(:new).and_return(uploader)
+        logger = stub('mock logger')
+        ApiCallLogger.stub(:new).and_return(logger)
+        logger.stub(:log_start)
+        logger.stub(:log_request)
+        logger.stub(:log_response)
+        logger.stub(:close)
+        logger.should_receive(:log_error) do |ex|
+          ex.message.should eq("Transfer to file already exists #{transfer_to_path}/weather_station_01.dat")
+        end
+
+        create_test_file(File.join(transfer_to_path, 'weather_station_01.dat'))
+        expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                                 'type' => 'UNKNOWN',
+                                 'experiment_id' => 78,
+                                 'tag_names' => "Photo,Video"}
+        expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                                 'type' => 'RAW',
+                                 'experiment_id' => 79}
+        uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
+        uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
+
+        uploader = BatchUploader.new(config_path)
+        uploader.run
+
+      end
     end
   end
 
-  describe 'Date substitutions' do
-    it 'should replace supported replacements strings' do
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.do_substitutions('/path/with/%%today_yyyy-mm-dd%%.stuff').should eq("/path/with/#{Date.today.strftime('%Y-%m-%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%yesterday_yyyy-mm-dd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%Y-%m-%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%today_yymmdd%%.stuff').should eq("/path/with/#{Date.today.strftime('%y%m%d')}.stuff")
-      uploader.do_substitutions('/path/with/%%yesterday_yymmdd%%.stuff').should eq("/path/with/#{(Date.today - 1).strftime('%y%m%d')}.stuff")
-    end
-
-    it 'should leave other paths alone' do
-      BatchUploader.new(spec_config_path).do_substitutions('some/other/text/').should eq('some/other/text/')
-    end
-  end
-
-  describe 'Backup' do
+  describe 'Performing the upload' do
     before(:each) do
-      Dir.mkdir(backup_path)
+      yml =
+          "" "
+        api_endpoint: http://localhost:3000/data_files/api_create
+        common_parameters:
+          auth_token: 1QpgMVLEkuopbzU4Jwq1
+        file_parameter_name: file
+
+        files:
+          -
+            source_directory: #{source_files_path}
+            file: !ruby/regexp /\\Aweather_station_\\d{2}.dat\\z/
+            transfer_to_directory: #{transfer_to_path}
+            file_parameters:
+              type: UNKNOWN
+              experiment_id: 78
+              tag_names: 'Photo,Video'
+          -
+            source_directory: #{source_files_path}
+            file: sample1.txt
+            transfer_to_directory: #{transfer_to_path_2}
+            file_parameters:
+              type: RAW
+              experiment_id: 79
+
+        " ""
+      write_yml(yml, config_path)
     end
 
-    after(:each) do
-      FileUtils.rm_r backup_path
+    describe 'Identifying the right files' do
+      it 'should match the correct files based on both plain filenames and regexen' do
+        uploader = stub('mock uploader')
+        FileUploader.stub(:new).and_return(uploader)
+
+        expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                                 'type' => 'UNKNOWN',
+                                 'experiment_id' => 78,
+                                 'tag_names' => "Photo,Video"}
+        expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                                 'type' => 'RAW',
+                                 'experiment_id' => 79}
+        uploader.should_receive(:upload).with(sample1_path, expected_post_params1)
+        uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
+        uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
+
+        uploader = BatchUploader.new(config_path)
+        uploader.run
+      end
     end
+    describe 'moving the file to the transfer to directory on success' do
+      it 'should move the files to the specified transfer_to directory' do
+        uploader = stub('mock uploader')
+        FileUploader.stub(:new).and_return(uploader)
 
-    it 'should abort the backup if the target backup file already exists' do
-      rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
+        uploader.should_receive(:upload).and_return(true)
+        uploader.should_receive(:upload).and_return(true)
+        uploader.should_receive(:upload).and_return(true)
 
-      backup_sample_1 = "#{backup_path}/weather_station_#{Date.today.strftime("%Y-%m-%d")}.dat"
-      backup_sample_no_extension = "#{backup_path}/sample1_#{Date.today.strftime("%Y-%m-%d")}"
+        uploader = BatchUploader.new(config_path)
+        uploader.run
 
-      logger = mock('mock logger')
-      ApiCallLogger.stub(:new).and_return(logger)
-      logger.should_receive(:log_request).once
-      logger.should_receive(:log_error).with(BackupExistsException.new(backup_sample_1))
-      logger.should_receive(:log_response).once
-      logger.should_receive(:close).once
+        File.exist?(sample1_path).should be_false
+        File.exist?(sample2_path).should be_false
+        File.exist?(sample4_path).should be_false
 
-      # make the backup file already exist
-      File.open(backup_sample_1, 'w') { |file| file.puts "file with content" }
-      File.exists?(backup_sample_1).should be true
-
-      #only the other file should be sent
-      RestClient.should_receive(:post) do |url, params, settings|
-        params['file'].should be_a(File)
-        params['file'].path.should eq(backup_sample_no_extension)
+        File.exist?(File.join(transfer_to_path, 'weather_station_01.dat')).should be_true
+        File.exist?(File.join(transfer_to_path, 'weather_station_02.dat')).should be_true
+        File.exist?(File.join(transfer_to_path_2, 'sample1.txt')).should be_true
       end
-
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
-
-      # both the original and the pre-existing backup should still be in place
-      File.exists?(backup_sample_1).should be true
-      File.exists?(sample1_path).should be true
     end
+    describe 'leaving the files in place on failure' do
+      it 'should leave the file alone on failure' do
+        uploader = stub('mock uploader')
+        FileUploader.stub(:new).and_return(uploader)
 
-    it 'copies the file to the backup directory and deletes the original on success' do
-      rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
-      logger = mock('mock logger')
-      ApiCallLogger.stub(:new).and_return(logger)
-      logger.stub(:log_request)
-      logger.stub(:log_response)
-      logger.stub(:close)
+        expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                                 'type' => 'UNKNOWN',
+                                 'experiment_id' => 78,
+                                 'tag_names' => "Photo,Video"}
+        expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
+                                 'type' => 'RAW',
+                                 'experiment_id' => 79}
+        uploader.should_receive(:upload).with(sample1_path, expected_post_params1).and_return(false)
+        uploader.should_receive(:upload).with(sample2_path, expected_post_params1).and_return(true)
+        uploader.should_receive(:upload).with(sample4_path, expected_post_params4).and_return(false)
 
-      backup_sample_1 = "#{backup_path}/weather_station_#{Date.today.strftime("%Y-%m-%d")}.dat"
-      backup_sample_no_extension = "#{backup_path}/sample1_#{Date.today.strftime("%Y-%m-%d")}"
+        uploader = BatchUploader.new(config_path)
+        uploader.run
 
-      RestClient.should_receive(:post) do |url, params, settings|
-        params['file'].should be_a(File)
-        params['file'].path.should eq(backup_sample_1)
+        File.exist?(sample1_path).should be_true
+        File.exist?(sample2_path).should be_false
+        File.exist?(sample4_path).should be_true
+
+        File.exist?(File.join(transfer_to_path, 'weather_station_01.dat')).should be_false
+        File.exist?(File.join(transfer_to_path, 'weather_station_02.dat')).should be_true
+        File.exist?(File.join(transfer_to_path_2, 'sample1.txt')).should be_false
       end
-
-      RestClient.should_receive(:post) do |url, params, settings|
-        params['file'].should be_a(File)
-        params['file'].path.should eq(backup_sample_no_extension)
-      end
-
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
-
-      File.exists?(backup_sample_1).should be true
-      File.exists?(backup_sample_no_extension).should be true
-      File.exists?(sample1_path).should be false
-      File.exists?(sample_no_extension_path).should be false
-    end
-
-    it 'copies the file to the backup directory and deletes the backup on failure' do
-
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
-
-      rewrite_paths(template_config_path, spec_config_path, [sample1_path, sample_no_extension_path], backup_path)
-      logger = mock('mock logger')
-      ApiCallLogger.stub(:new).and_return(logger)
-      logger.should_receive(:log_request).twice
-      logger.should_receive(:log_error).once
-      logger.should_receive(:log_response).once
-      logger.should_receive(:close).once
-
-      backup_sample_1 = "#{backup_path}/weather_station_#{Date.today.strftime("%Y-%m-%d")}.dat"
-      backup_sample_no_extension = "#{backup_path}/sample1_#{Date.today.strftime("%Y-%m-%d")}"
-
-      RestClient.should_receive(:post) do |url, params, settings|
-        params['file'].should be_a(File)
-        params['file'].path.should eq(backup_sample_1)
-      end
-
-      RestClient.should_receive(:post) do |url, params, settings|
-        params['file'].should be_a(File)
-        params['file'].path.should eq(backup_sample_no_extension)
-      end.and_throw("error")
-
-      uploader = BatchUploader.new(spec_config_path)
-      uploader.run
-
-      #sample 1 succeeded
-      File.exists?(backup_sample_1).should be true
-      File.exists?(sample1_path).should be false
-
-      #sample no ext failed
-      File.exists?(backup_sample_no_extension).should be false
-      File.exists?(sample_no_extension_path).should be true
     end
   end
-end
-
-def rewrite_paths(template_path, output_path, files, backup_path = nil)
-  buffer = YAML::load_file(template_path)
-  files.each_with_index do |path, index|
-    buffer['files'][index]['path'] = path
-    if backup_path
-      buffer['files'][index]['file_parameters']['backup'] = backup_path
-    end
-  end
-  File.open(output_path, 'w+') { |f| f.write(YAML::dump(buffer)) }
 end
 
 def create_test_file(path)
   File.open(path, 'w+') { |f| f.write('some random text') }
+end
+
+def write_yml(yml, path)
+  File.open(path, 'w+') { |f| f.write(yml) }
 end
