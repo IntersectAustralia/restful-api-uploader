@@ -58,14 +58,15 @@ class BatchUploader
     if file_pattern.is_a?(String)
       upload_file(source_path, file_pattern, post_params, transfer_to_path)
     elsif file_pattern.is_a?(Regexp)
-      found_any = false
-      Dir.foreach(source_path) do |file_name|
-        if file_pattern =~ file_name
-          upload_file(source_path, file_name, post_params, transfer_to_path)
-          found_any = true
-        end
-      end
-      raise "Did not find any files matching regular expression #{file_pattern}" unless found_any
+     upload_file(source_path, file_pattern.to_s, post_params, transfer_to_path)
+      #found_any = false
+      #Dir.foreach(source_path) do |file_name|
+     #   if file_pattern =~ file_name
+     #     upload_file(source_path, file_name, post_params, transfer_to_path)
+     #     found_any = true
+     #   end
+    #  end
+    #  raise "Did not find any files matching regular expression #{file_pattern}" unless found_any
     else
       raise "Unrecognised file name, must be a String or Regexp, found #{file_pattern.class}"
     end
@@ -73,18 +74,32 @@ class BatchUploader
 
   def upload_file(source_path, file_name, post_params, transfer_to_path)
     begin
-      file_path = File.join(source_path, file_name)
-      log_writer.log_start(file_path)
-      # make sure the file exists - this will raise an exception if it doesn't
-      File.new(file_path)
-      # make sure that the backup file doesn't exist
-      dest_path = File.join(transfer_to_path, file_name)
-      raise "Transfer to file already exists #{dest_path}" if File.exist?(dest_path)
-
-      success = file_uploader.upload(file_path, post_params)
-      if success
-        FileUtils.mv File.new(file_path), dest_path
+      if file_name.include?('.')
+        file_name_start = file_name.split('.').first
+        file_name_ext = '.' + file_name.split('.').last
+      else
+        file_name_start = file_name
+        file_name_ext = ''
       end
+
+
+      file_pattern = /\A#{file_name_start}_\d{8}#{file_name_ext}\Z/
+
+      found_any = false
+      Dir.foreach(source_path) do |file|
+        if file.match(file_pattern)
+          file_path = File.join(source_path, file)
+          dest_path = File.join(transfer_to_path, file)
+          raise "Transfer to file already exists #{dest_path}" if File.exist?(dest_path)
+          success = file_uploader.upload(file_path, post_params)
+
+          if success
+            FileUtils.mv File.new(file_path), dest_path
+          end
+          found_any = true
+        end
+      end
+      raise "Did not find any files matching regular expression #{file_pattern} in directory #{source_path}" unless found_any
     rescue
       log_writer.log_error($!)
     end

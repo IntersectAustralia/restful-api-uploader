@@ -19,7 +19,7 @@ files:
     #filename or regex
     file: toa5.dat
     #transfer to path - directory to move files to after successful upload
-    source_directory: C:\Documents and Settings\Administrator\My Documents\done
+    transfer_to_directory: C:\Documents and Settings\Administrator\My Documents\done
     # specify any additional file-specific POST parameters to send with the file, these will be added to the multipart POST
     file_parameters:
       description: some desc
@@ -33,9 +33,9 @@ files:
     # enclose in forward slashes. Use \A and the start and \z at the end for exact matches, otherwise the below would
     # also match blahweather_dddddddd.dat2 for example
     # TIP: use http://rubular.com/ to construct and test your regex
-    file: !ruby/regexp /\Aweather_station_\d{2}_min.dat\z/
+    file: !ruby/regexp /\Aweather_station_\d{2}_min.dat\Z/
     #transfer to path - directory to move files to after successful upload
-    source_directory: C:\Documents and Settings\Administrator\My Documents\done
+    transfer_to_directory: C:\Documents and Settings\Administrator\My Documents\done
     # specify any additional file-specific POST parameters to send with the file, these will be added to the multipart POST
     file_parameters:
       type: UNKNOWN

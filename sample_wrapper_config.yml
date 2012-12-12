@@ -1,0 +1,20 @@
+files:
+-
+path: C:\Campbellsci\LoggerNet\ROS_WS_Table2.dat
+destination: C:\DC21\data\UploadPending
+destination: C:\LoggerNet\Backups\YYYYMMDD_HHMMSS
+rotate: weekly
+-
+path: C:\Campbellsci\LoggerNet\ROS_WS_Table05min.dat
+destination: C:\DC21\data\UploadPending
+destination: C:\LoggerNet\Backups\YYYYMMDD_HHMMSS
+rotate: weekly
+-
+path: C:\Campbellsci\LoggerNet\ROS_WS_Table05min.dat
+destination: C:\DC21\data\UploadPending
+destination: C:\LoggerNet\Backups\YYYYMMDD_HHMMSS
+rotate: weekly
+-
+path: C:\DATA\Minutedata\Min%%yesterday_yymmdd%%.csv
+destination: C:\DC21\data\UploadPending
+destination: C:\LoggerNet\Backups\YYYYMMDD_HHMMSS
