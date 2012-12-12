@@ -83,10 +83,10 @@ class WrapperUploader
   def get_dated_filename(src_path, rotation_date)
     unless rotation_date.nil?
       date = rotation_date.strftime("%Y%m%d")
-      existing_filename = src_path.tr("[\]", "/").split('/').last
+      existing_filename = src_path.gsub("[\]", "/").split('/').last
       new_filename = existing_filename.split('.').first
       new_filename << "_#{date}"
-      if existing_filename.includes?('.')
+      if existing_filename.include?('.')
         new_filename << ".#{existing_filename.split('.').last}"
       end
     end
