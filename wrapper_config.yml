@@ -1,0 +1,13 @@
+files:
+  -
+    path: /tmp/dc21_upload/origin/sample.txt
+    destination:
+      - /tmp/dc21_upload/pending
+      - /tmp/dc21_upload/rotate
+    rotate: daily
+  -
+    path: /tmp/dc21_upload/origin/weather_station_15_min.dat
+    destination:
+      - /tmp/dc21_upload/pending
+      - /tmp/dc21_upload/rotate
+    rotate: weekly
