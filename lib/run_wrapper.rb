@@ -1,10 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/wrapper_uploader')
 require File.expand_path(File.dirname(__FILE__) + '/batch_uploader')
 
-#wrapper_config = ARGV[0]
-#transfer_config = ARGV[1]
-wrapper_config = File.expand_path('/tmp/dc21/config1.yml')
-transfer_config = File.expand_path('/tmp/dc21/config2.yml')
+wrapper_config = ARGV[0]
+transfer_config = ARGV[1]
 
 if wrapper_config.nil? || wrapper_config.length == 0
   raise 'You need to pass an argument containing the full path of the wrapper config yaml file'
