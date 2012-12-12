@@ -94,7 +94,8 @@ class BatchUploader
           success = file_uploader.upload(file_path, post_params)
 
           if success
-            FileUtils.mv File.new(file_path), dest_path
+            FileUtils.cp (file_path, dest_path)
+            FileUtils.rm (file_path)
           end
           found_any = true
         end
