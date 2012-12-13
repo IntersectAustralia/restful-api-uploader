@@ -1,13 +1,14 @@
 files:
   -
-    path: /tmp/dc21_upload/origin/sample.txt
-    destination:
+    path: /tmp/dc21_upload/origin
+    file: sample1.dat
+    destination: 
       - /tmp/dc21_upload/pending
       - /tmp/dc21_upload/rotate
-    rotate: daily
   -
-    path: /tmp/dc21_upload/origin/weather_station_15_min.dat
-    destination:
+    path: /tmp/dc21_upload/origin
+    file: !ruby/regexp /\Aweather_station_\d{2}_min.dat\z/
+    destination: 
       - /tmp/dc21_upload/pending
       - /tmp/dc21_upload/rotate
-    rotate: weekly
+

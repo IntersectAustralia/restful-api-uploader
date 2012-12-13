@@ -87,7 +87,7 @@ class BatchUploader
 
       found_any = false
       Dir.foreach(source_path) do |file|
-        if file.match(file_pattern) || file.eql?(file_name)
+        if file.match(file_pattern) || file.match(file_name)
           file_path = File.join(source_path, file)
           dest_path = File.join(transfer_to_path, file)
           success = file_uploader.upload(file_path, post_params)
@@ -99,7 +99,7 @@ class BatchUploader
           found_any = true
         end
       end
-      raise "Did not find any files matching regular expression #{file_pattern} in directory #{source_path}" unless found_any
+      raise "Did not find any files matching file #{file_name} or regular expression #{file_pattern} in directory #{source_path}" unless found_any
     rescue
       log_writer.log_error($!)
     end
