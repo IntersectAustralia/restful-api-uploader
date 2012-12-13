@@ -25,15 +25,14 @@ class WrapperUploader
   def prepare_and_stage_file(file_config)
     begin
       src_path = file_config['path']
-    src_file = file_config['file']
-	  src_path << "/#{src_file}"
+      src_file = file_config['file']
       backup_paths = file_config['destination']
       rotation = file_config['rotate']
-
       if backup_paths.nil? || backup_paths.empty? || src_file.nil? || src_file.empty?||src_path.nil? || src_path.empty?
         #config file cannot be interpreted.
         raise "cannot interpret wrapper configuration yml file. See example_wrapper_config.yml for correct implementation"
       end
+      src_path << "/#{src_file}"
       dest_path = backup_paths.first
 
       #Construct new file name based on rotation params
