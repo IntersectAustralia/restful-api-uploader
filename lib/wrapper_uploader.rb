@@ -25,18 +25,20 @@ class WrapperUploader
   def prepare_and_stage_file(file_config)
     begin
       src_path = file_config['path']
+      src_file = file_config['file']
       backup_paths = file_config['destination']
       rotation = file_config['rotate']
 
-      if backup_paths.nil? || backup_paths.empty? || src_path.nil? || src_path.empty?
+      if backup_paths.nil? || backup_paths.empty? || src_file.nil? || src_file.empty?||src_path.nil? || src_path.empty?
         #config file cannot be interpreted.
-        #raise ConfigurationException(config_path)
+        raise "cannot interpret wrapper configuration yml file. See example_wrapper_config.yml for correct implementation"
       end
+      src_path << "/#{src_file}"
       dest_path = backup_paths.first
 
       #Construct new file name based on rotation params
       rotation_date = get_rotation_date(rotation)
-      filename = get_dated_filename(src_path, rotation_date)
+      filename = get_dated_filename(src_file, rotation_date)
 
       temp_destination = File.join(dest_path, filename)
       if File.exist?(temp_destination)
@@ -80,14 +82,13 @@ class WrapperUploader
     end
   end
 
-  def get_dated_filename(src_path, rotation_date)
+  def get_dated_filename(src_file, rotation_date)
     unless rotation_date.nil?
       date = rotation_date.strftime("%Y%m%d")
-      existing_filename = src_path.gsub("[\]", "/").split('/').last
-      new_filename = existing_filename.split('.').first
+      new_filename = src_file.split('.').first
       new_filename << "_#{date}"
-      if existing_filename.include?('.')
-        new_filename << ".#{existing_filename.split('.').last}"
+      if src_file.include?('.')
+        new_filename << ".#{src_file.split('.').last}"
       end
     end
   end
