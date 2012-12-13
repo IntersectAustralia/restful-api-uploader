@@ -16,6 +16,7 @@ class WrapperUploader
 
   def run
     begin
+      raise "Supplied YML file did not contain an array named 'files'" unless config['files'].is_a?(Array)
       config['files'].each { |file_config| prepare_and_stage_file(file_config) }
     ensure
       log_writer.close
@@ -28,10 +29,11 @@ class WrapperUploader
       src_file = file_config['file']
       backup_paths = file_config['destination']
       rotation = file_config['rotate']
-      if backup_paths.nil? || backup_paths.empty? || src_file.nil? || src_file.empty?||src_path.nil? || src_path.empty?
-        #config file cannot be interpreted.
-        raise "cannot interpret wrapper configuration yml file. See example_wrapper_config.yml for correct implementation"
-      end
+      
+      raise "Missing source path for file #{src_file} in wrapper_config.yml" if src_path.nil? or src_path.is_a?(String) and src_path.empty?
+      raise "Missing file name in wrapper_config.yml" if src_file.nil? or src_file.is_a?(String) and src_file.empty?
+      raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or backup_paths.is_a?(String) and backup_paths.empty?
+    
       src_path << "/#{src_file}"
       dest_path = backup_paths.first
 
