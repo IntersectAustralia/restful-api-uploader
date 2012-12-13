@@ -28,7 +28,7 @@ unless File.exist?(transfer_config)
   raise "Specified config file not found #{transfer_config}"
 end
 
-batch_uploader = BatchUploader.new(transfer_config)
+batch_uploader = BatchUploader.new(transfer_config) 
 batch_uploader.run
 
 puts "Batch completed. Check results in #{File.absolute_path(batch_uploader.log_file_path)}"
