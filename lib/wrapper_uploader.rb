@@ -40,7 +40,7 @@ class WrapperUploader
       #Construct new file name based on rotation params
       rotation_date = get_rotation_date(rotation)
       filename = get_dated_filename(src_file, rotation_date)
-
+      
       temp_destination = File.join(dest_path, filename)
       if File.exist?(temp_destination)
         raise TempFileExistsException.new(temp_destination)
@@ -77,21 +77,23 @@ class WrapperUploader
       elsif rotation_type.eql?('weekly')
         date  = Date.parse("Saturday")
         delta = date > Date.today ? 0 : 7
-
         return date + delta
       end
     end
   end
 
   def get_dated_filename(src_file, rotation_date)
-    unless rotation_date.nil?
-      date = rotation_date.strftime("%Y%m%d")
+    if rotation_date.nil? or rotation_date.empty?
+      new_filename = src_file
+    else
+      date = rotation_date.strftime('%Y%m%d')
       new_filename = src_file.to_s.split('.').first
-      new_filename << "_#{date}"
+      new_filename << '_#{date}'
       if src_file.to_s.include?('.')
-        new_filename << ".#{src_file.to_s.split('.').last}"
+        new_filename << '.#{src_file.to_s.split('.').last}'
       end
     end
+    new_filename
   end
 end
 
