@@ -90,7 +90,6 @@ class BatchUploader
         if file.match(file_pattern) || file.eql?(file_name)
           file_path = File.join(source_path, file)
           dest_path = File.join(transfer_to_path, file)
-          raise "Transfer to file already exists #{dest_path}" if File.exist?(dest_path)
           success = file_uploader.upload(file_path, post_params)
 
           if success
