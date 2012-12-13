@@ -52,6 +52,7 @@ class WrapperUploader
       raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or backup_paths.is_a?(String) and backup_paths.empty?
       dest_path = backup_paths.shift
 
+
       files = get_files(src_path, src_file)
 
       files.each do |file|
@@ -69,6 +70,7 @@ class WrapperUploader
         else
           FileUtils.cp source, temp_destination
         end
+
         backup_paths.each do |backup_path|
           backup_dest = File.join(backup_path, filename)
           unless temp_destination.eql?(backup_dest)
@@ -101,6 +103,7 @@ class WrapperUploader
   end
 
   def get_dated_filename(src_file, rotation_date)
+<<<<<<< HEAD
     if rotation_date.nil?
       new_filename = src_file
     else
@@ -109,6 +112,16 @@ class WrapperUploader
       new_filename << "_#{date}"
       if src_file.include?('.')
         new_filename << ".#{src_file.split('.').last}"
+=======
+    if rotation_date.nil? or rotation_date.empty?
+      new_filename = src_file
+    else
+      date = rotation_date.strftime('%Y%m%d')
+      new_filename = src_file.to_s.split('.').first
+      new_filename << '_#{date}'
+      if src_file.to_s.include?('.')
+        new_filename << '.#{src_file.to_s.split('.').last}'
+>>>>>>> 0b1d9266f9f573053e245107ef47c66c24204a4c
       end
     end
     new_filename
