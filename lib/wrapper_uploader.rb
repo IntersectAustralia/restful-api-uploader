@@ -12,6 +12,10 @@ class WrapperUploader
     self.config = YAML.load_file(config_path)
     self.log_file_path = File.join(File.dirname(__FILE__), '..', 'log', 'log.txt')
     self.log_writer = ApiCallLogger.new(log_file_path)
+  rescue => e
+    log_writer.log_general_error('Error while loading configuration', e)
+    log_writer.close
+    raise e
   end
 
   def run
@@ -47,9 +51,9 @@ class WrapperUploader
       backup_paths = file_config['destination']
       rotation = file_config['rotate']
 
-      raise "Missing source path for file #{src_file} in wrapper_config.yml" if src_path.nil? or !src_path.is_a?(Regexp) and src_path.empty?
-      raise "Missing file name in wrapper_config.yml" if src_file.nil? or !src_file.is_a?(Regexp) and src_file.empty?
-      raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or !backup_paths.is_a?(Regexp) and backup_paths.empty?
+      raise "Missing source path for file #{src_file} in wrapper_config.yml" if src_path.nil? or src_path.eql?("")
+      raise "Missing file name in wrapper_config.yml" if src_file.nil? or src_path.eql?("")
+      raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or src_path.eql?("")
       dest_path = backup_paths.shift
 
 
