@@ -47,9 +47,9 @@ class WrapperUploader
       backup_paths = file_config['destination']
       rotation = file_config['rotate']
 
-      raise "Missing source path for file #{src_file} in wrapper_config.yml" if src_path.nil? or src_path.is_a?(String) and src_path.empty?
-      raise "Missing file name in wrapper_config.yml" if src_file.nil? or src_file.is_a?(String) and src_file.empty?
-      raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or backup_paths.is_a?(String) and backup_paths.empty?
+      raise "Missing source path for file #{src_file} in wrapper_config.yml" if src_path.nil? or !src_path.is_a?(Regexp) and src_path.empty?
+      raise "Missing file name in wrapper_config.yml" if src_file.nil? or !src_file.is_a?(Regexp) and src_file.empty?
+      raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or !backup_paths.is_a?(Regexp) and backup_paths.empty?
       dest_path = backup_paths.shift
 
 
