@@ -47,6 +47,9 @@ class BatchUploader
     file_pattern = file_config['file']
     transfer_to_path = file_config['transfer_to_directory']
 
+
+
+
     # make sure the source to path exists - this will raise an exception if it doesn't exist
     raise "Source path was not specified in transfer config yaml for file(s): #{file_pattern}" if source_path.nil? or source_path.empty?
     Dir.new(source_path)
