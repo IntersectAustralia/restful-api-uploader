@@ -46,9 +46,13 @@ class BatchUploader
     source_path = file_config['source_directory']
     file_pattern = file_config['file']
     transfer_to_path = file_config['transfer_to_directory']
+
     # make sure the source to path exists - this will raise an exception if it doesn't exist
+    raise "Source path was not specified in transfer config yaml for file(s): #{file_pattern}" if source_path.nil? or source_path.empty?
     Dir.new(source_path)
+
     # make sure the transfer to path exists - this will raise an exception if it doesn't exist
+    raise "Transfer_to path was not specified in transfer config yaml for file(s): #{file_pattern}" if transfer_to_path.nil? or transfer_to_path.empty?
     Dir.new(transfer_to_path)
 
     post_params = {}
@@ -59,14 +63,6 @@ class BatchUploader
       upload_file(source_path, file_pattern, post_params, transfer_to_path)
     elsif file_pattern.is_a?(Regexp)
      upload_file(source_path, file_pattern.to_s, post_params, transfer_to_path)
-      #found_any = false
-      #Dir.foreach(source_path) do |file_name|
-     #   if file_pattern =~ file_name
-     #     upload_file(source_path, file_name, post_params, transfer_to_path)
-     #     found_any = true
-     #   end
-    #  end
-    #  raise "Did not find any files matching regular expression #{file_pattern}" unless found_any
     else
       raise "Unrecognised file name, must be a String or Regexp, found #{file_pattern.class}"
     end

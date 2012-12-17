@@ -51,9 +51,26 @@ class WrapperUploader
       backup_paths = file_config['destination']
       rotation = file_config['rotate']
 
-      raise "Missing source path for file #{src_file} in wrapper_config.yml" if src_path.nil? or src_path.eql?("")
-      raise "Missing file name in wrapper_config.yml" if src_file.nil? or src_path.eql?("")
-      raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or src_path.eql?("")
+
+    if file_pattern.is_a?(String)
+      upload_file(source_path, file_pattern, post_params, transfer_to_path)
+    elsif file_pattern.is_a?(Regexp)
+     upload_file(source_path, file_pattern.to_s, post_params, transfer_to_path)
+    else
+      raise "Unrecognised file name, must be a String or Regexp, found #{file_pattern.class}"
+    end
+
+     if file_pattern.is_a?(String)
+      upload_file(source_path, file_pattern, post_params, transfer_to_path)
+    elsif file_pattern.is_a?(Regexp)
+     upload_file(source_path, file_pattern.to_s, post_params, transfer_to_path)
+    else
+      raise "Unrecognised file name, must be a String or Regexp, found #{file_pattern.class}"
+    end
+
+      raise "Missing source path for file #{src_file} in wrapper_config.yml" if src_path.nil? or src_path.empty?
+      raise "Missing file name in wrapper_config.yml. Must be a String or Regexp"  if src_file.nil? or !src_file.is_a?(String) and !src_file.is_a?(Regexp)
+      raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or backup_paths.empty?
       dest_path = backup_paths.shift
 
 
