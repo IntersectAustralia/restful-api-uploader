@@ -95,13 +95,11 @@ class WrapperUploader
   def get_rotation_date(rotation_type)
     unless rotation_type.nil?
       if rotation_type.eql?('daily')
-        return Date.today
+        Date.today
       elsif rotation_type.eql?('monthly')
-        return  Date.civil(Date.today.year, Date.today.month, -1)
+        Date.civil(Date.today.year, Date.today.month, -1)
       elsif rotation_type.eql?('weekly')
-        date  = Date.parse("Saturday")
-        delta = date > Date.today ? 0 : 7
-        return date + delta
+        Date.parse("Saturday")
       end
     end
   end
