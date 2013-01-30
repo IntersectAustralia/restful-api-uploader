@@ -74,7 +74,8 @@ class BatchUploader
       Dir.foreach(source_path) do |file|
         if file.match(file_pattern)
           file_path = File.join(source_path, file)
-	  dest_path = File.join(transfer_to_path, file)
+	  timestamped_file = self.add_timestamp_to_file(file)
+          dest_path = File.join(transfer_to_path, timestamped_file)
           success = file_uploader.upload(file_path, post_params)
           if success
             FileUtils.mv file_path, dest_path
@@ -86,5 +87,16 @@ class BatchUploader
     rescue
       log_writer.log_error($!) unless (suppress_errors)
     end
+  end
+
+  def add_timestamp_to_file(file_name) 
+    if file_name.include?('.')
+      file_name_start = file_name.split('.').first
+      file_name_ext = '.' + file_name.split('.').last
+    else
+      file_name_start = file_name
+      file_name_ext = ''
+    end 
+    "#{file_name_start}__#{DateTime.now.strftime("%Y-%m-%d")}_#{DateTime.now.strftime("%H:%M:%S")}#{file_name_ext}"
   end
 end
