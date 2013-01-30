@@ -56,7 +56,6 @@ class WrapperUploader
       raise "Missing destination path for file #{src_file} in wrapper_config.yml. Please specify at least one destination per file" if backup_paths.nil? or backup_paths.empty?
       dest_path = backup_paths.shift
 
-
       files = get_files(src_path, src_file)
 
       files.each do |file|
@@ -78,6 +77,7 @@ class WrapperUploader
         backup_paths.each do |backup_path|
           backup_dest = File.join(backup_path, filename)
           unless temp_destination.eql?(backup_dest)
+	    FileUtils.mkdir (backup_path) unless Dir.exist? (backup_path)
             FileUtils.cp temp_destination, backup_dest
           end
         end
