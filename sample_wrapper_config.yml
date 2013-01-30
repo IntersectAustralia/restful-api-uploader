@@ -1,10 +1,25 @@
+# Add one stanza below for each file or file pattern.
+# Using a simple string will exactly match a single file
+# Using a regular expression will result in all files that match the pattern being uploaded - more below re regex usage
 files:
   -
+    #directory where the file will be found
     path: C:\Campbellsci\LoggerNet
+    #filename (can include regular expressions)
     file: ROS_WS_Table2.dat
+    #The directories where files will be placed. At least one is required
     destination: 
+      #The first destination directory is compulsory. 
+      #It specifies the destination for files to be placed when they are ready for upload.
+      #The transfer script will use this directory as its source file, and perform the upload to DC21.
       - C:\DC21\data\UploadPending
+      #additional destinations can be specified for managing backups.
+      #The behaviour of file rotation or 'backing up' is defined by the rotate value below
       - C:\LoggerNet\Backups\YYYYMMDD_HHMMSS
+    #The rotate parameter can be set to 'daily', 'weekly' or 'monthly'.
+    #The value determines how frequently files are backed-up and rotated through destination directories.
+    #A datestamp will be automatically appended to each file, which signifies the next rotation date.
+    #It is also permissibl to leave this field blank, in which case no datestamp will be appended,
     rotate: monthly
   -
     path: C:\Campbellsci\LoggerNet
