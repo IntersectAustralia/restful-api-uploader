@@ -28,10 +28,3 @@ files:
       - C:\DC21\data\UploadPending
       - C:\LoggerNet\Backups\YYYYMMDD_HHMMSS
     rotate: weekly
-  -
-    path: C:\Campbellsci\LoggerNet
-    file: ROS_WS_Table05min.dat
-    destination: 
-      - C:\DC21\data\UploadPending
-      - C:\LoggerNet\Backups\YYYYMMDD_HHMMSS
-    rotate: weekly
