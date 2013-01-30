@@ -68,23 +68,13 @@ class BatchUploader
     end
   end
 
-  def upload_file(source_path, file_name, post_params, transfer_to_path, suppress_errors)
+  def upload_file(source_path, file_pattern, post_params, transfer_to_path, suppress_errors)
     begin
-      if file_name.include?('.')
-        file_name_start = file_name.split('.').first
-        file_name_ext = '.' + file_name.split('.').last
-      else
-        file_name_start = file_name
-        file_name_ext = ''
-      end
-
-      file_pattern = /\A#{file_name_start}_\d{8}#{file_name_ext}\Z/
-
       found_any = false
       Dir.foreach(source_path) do |file|
-        if file.match(file_pattern) || file.match(file_name)
+        if file.match(file_pattern)
           file_path = File.join(source_path, file)
-          dest_path = File.join(transfer_to_path, file)
+	  dest_path = File.join(transfer_to_path, file)
           success = file_uploader.upload(file_path, post_params)
           if success
             FileUtils.mv file_path, dest_path
@@ -92,7 +82,7 @@ class BatchUploader
           found_any = true
         end
       end
-    raise "Did not find any files matching file #{file_name} or regular expression #{file_pattern} in directory #{source_path}" unless (found_any or suppress_errors)
+      raise "Did not find any files matching file #{file_pattern} in directory #{source_path}" unless (found_any or suppress_errors)
     rescue
       log_writer.log_error($!) unless (suppress_errors)
     end
