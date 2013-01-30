@@ -90,13 +90,6 @@ class BatchUploader
   end
 
   def add_timestamp_to_file(file_name) 
-    if file_name.include?('.')
-      file_name_start = file_name.split('.').first
-      file_name_ext = '.' + file_name.split('.').last
-    else
-      file_name_start = file_name
-      file_name_ext = ''
-    end 
-    "#{file_name_start}__#{DateTime.now.strftime("%Y-%m-%d")}_#{DateTime.now.strftime("%H:%M:%S")}#{file_name_ext}"
+    "#{DateTime.now.strftime("%Y%m%d%H%M%S")}_#{file_name}"
   end
 end

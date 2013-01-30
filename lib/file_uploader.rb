@@ -29,5 +29,4 @@ class FileUploader
     end
   end
 
-
 end
