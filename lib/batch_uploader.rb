@@ -90,6 +90,6 @@ class BatchUploader
   end
 
   def add_timestamp_to_file(file_name) 
-    "#{DateTime.now.strftime("%Y%m%d%H%M%S")}_#{file_name}"
+    "#{DateTime.now.strftime("%Y%m%d%H%M%S")}-#{file_name}"
   end
 end
