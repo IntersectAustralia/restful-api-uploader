@@ -26,13 +26,13 @@ class BatchUploader
 
   end
 
-  def run(suppress_errors)
+  def run
     begin
       config['files'].each do |group|
         begin
-          process_file_group(group, suppress_errors)
+          process_file_group(group)
         rescue => e
-          log_writer.log_group_error(group, e) unless (suppress_errors)
+          log_writer.log_group_error(group, e)
         end
       end
     ensure
@@ -41,7 +41,7 @@ class BatchUploader
   end
 
 
-  def process_file_group(file_config, suppress_errors)
+  def process_file_group(file_config)
     file_params = file_config['file_parameters']
     source_path = file_config['source_directory']
     file_pattern = file_config['file']
@@ -60,15 +60,15 @@ class BatchUploader
     post_params.merge!(file_params)
 
     if file_pattern.is_a?(String)
-      upload_file(source_path, file_pattern, post_params, transfer_to_path, suppress_errors)
+      upload_file(source_path, file_pattern, post_params, transfer_to_path)
     elsif file_pattern.is_a?(Regexp)
-      upload_file(source_path, file_pattern.to_s, post_params, transfer_to_path, suppress_errors)
+      upload_file(source_path, file_pattern.to_s, post_params, transfer_to_path)
     else
-      raise "Unrecognised file name, must be a String or Regexp, found #{file_pattern.class}" unless (suppress_errors)
+      raise "Unrecognised file name, must be a String or Regexp, found #{file_pattern.class}" 
     end
   end
 
-  def upload_file(source_path, file_pattern, post_params, transfer_to_path, suppress_errors)
+  def upload_file(source_path, file_pattern, post_params, transfer_to_path)
     begin
       found_any = false
       Dir.foreach(source_path) do |file|
@@ -83,9 +83,9 @@ class BatchUploader
           found_any = true
         end
       end
-      raise "Did not find any files matching file #{file_pattern} in directory #{source_path}" unless (found_any or suppress_errors)
+      raise "Did not find any files matching file #{file_pattern} in directory #{source_path}" unless (found_any)
     rescue
-      log_writer.log_error($!) unless (suppress_errors)
+      log_writer.log_error($!) 
     end
   end
 

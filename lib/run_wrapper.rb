@@ -12,7 +12,7 @@ raise "Specified config file not found #{transfer_config}" unless File.exist?(tr
 
 #run transfer first (to clean up old errors)
 batch_uploader = BatchUploader.new(transfer_config) 
-batch_uploader.run(true)
+batch_uploader.run
 puts "step 1: Batch completed. Check results in #{File.absolute_path(batch_uploader.log_file_path)}"
 
 #then run wrapper for new uploads
@@ -24,6 +24,6 @@ puts "-------------"
 
 #run transfer again for new uploads
 batch_uploader = BatchUploader.new(transfer_config) 
-batch_uploader.run(false)
+batch_uploader.run
 puts "step 3: Batch completed. Check results in #{File.absolute_path(batch_uploader.log_file_path)}"
 puts "upload script has finished."
