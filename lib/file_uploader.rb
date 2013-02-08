@@ -1,5 +1,6 @@
 class FileUploader
 
+  TIMEOUT = 20 * 60 # 20 minutes
   attr_accessor :log_writer, :file_parameter_name, :server_url
 
   def initialize(log_writer, file_parameter_name, server_url)
@@ -17,7 +18,8 @@ class FileUploader
   def perform_upload(post_params)
     begin
       log_writer.log_request(post_params, server_url)
-      response = RestClient.post server_url, post_params, accept: :json
+      resource = RestClient::Resource.new(server_url, accept: :json, timeout: TIMEOUT, open_timeout: TIMEOUT)
+      response = resource.post post_params
       log_writer.log_response(response)
       response.code == 200
     rescue RestClient::Exception => e
