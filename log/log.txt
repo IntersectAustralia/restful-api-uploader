@@ -1,0 +1,45 @@
+2013-03-22 17:55:45 +1100 INFO  windows_api_load starting...
+2013-03-22 17:55:45 +1100 INFO  Step 1: Processing transfer config file...
+2013-03-22 17:55:45 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>"toa5.dat", "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"description"=>"some desc", "type"=>"RAW", "experiment_id"=>78}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:55:45 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>/\Afilename_\d{8}.dat\Z/, "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"type"=>"UNKNOWN", "experiment_id"=>78, "tag_names"=>"Photo,Video"}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:55:45 +1100 INFO  Step 1 Completed: 2 warnings, 0/0 files transferred/attempted (0.00MB)
+2013-03-22 17:55:45 +1100 INFO  Step 2: Processing wrapper config file...
+2013-03-22 17:55:45 +1100 ERROR Syntax Error: Supplied YML file did not contain a 'files' directive.
+2013-03-22 17:55:45 +1100 INFO  Step 2 Completed: 0 warnings, 0/0 files moved/copied.
+2013-03-22 17:55:45 +1100 INFO  Step 2: Upload wrapper has completed. Check results in /home/khanh/devel/restful-api-uploader/log/log.txt
+2013-03-22 17:55:45 +1100 INFO  Step 3: Processing transfer config file
+2013-03-22 17:55:45 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>"toa5.dat", "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"description"=>"some desc", "type"=>"RAW", "experiment_id"=>78}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:55:45 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>/\Afilename_\d{8}.dat\Z/, "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"type"=>"UNKNOWN", "experiment_id"=>78, "tag_names"=>"Photo,Video"}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:55:45 +1100 INFO  Step 3 Completed: 2 warnings, 0/0 files transferred/attempted (0.00MB)
+2013-03-22 17:55:45 +1100 INFO  Upload script has finished.
+-------------------------------------------------------
+2013-03-22 17:56:09 +1100 INFO  windows_api_load starting...
+2013-03-22 17:56:09 +1100 INFO  Step 1: Processing transfer config file...
+2013-03-22 17:56:09 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>"toa5.dat", "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"description"=>"some desc", "type"=>"RAW", "experiment_id"=>78}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:56:09 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>/\Afilename_\d{8}.dat\Z/, "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"type"=>"UNKNOWN", "experiment_id"=>78, "tag_names"=>"Photo,Video"}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:56:09 +1100 INFO  Step 1 Completed: 2 warnings, 0/0 files transferred/attempted (0.00MB)
+2013-03-22 17:56:09 +1100 INFO  Step 2: Processing wrapper config file...
+2013-03-22 17:56:09 +1100 WARN  Supplied YML file did not contain an array named 'files'
+2013-03-22 17:56:09 +1100 INFO  Step 2 Completed: 0 warnings, 0/0 files moved/copied.
+2013-03-22 17:56:09 +1100 INFO  Step 2: Upload wrapper has completed. Check results in /home/khanh/devel/restful-api-uploader/log/log.txt
+2013-03-22 17:56:09 +1100 INFO  Step 3: Processing transfer config file
+2013-03-22 17:56:09 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>"toa5.dat", "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"description"=>"some desc", "type"=>"RAW", "experiment_id"=>78}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:56:09 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>/\Afilename_\d{8}.dat\Z/, "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"type"=>"UNKNOWN", "experiment_id"=>78, "tag_names"=>"Photo,Video"}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:56:09 +1100 INFO  Step 3 Completed: 2 warnings, 0/0 files transferred/attempted (0.00MB)
+2013-03-22 17:56:09 +1100 INFO  Upload script has finished.
+-------------------------------------------------------
+2013-03-22 17:57:05 +1100 INFO  windows_api_load starting...
+2013-03-22 17:57:05 +1100 INFO  Step 1: Processing transfer config file...
+2013-03-22 17:57:05 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>"toa5.dat", "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"description"=>"some desc", "type"=>"RAW", "experiment_id"=>78}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:57:05 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>/\Afilename_\d{8}.dat\Z/, "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"type"=>"UNKNOWN", "experiment_id"=>78, "tag_names"=>"Photo,Video"}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:57:05 +1100 INFO  Step 1 Completed: 2 warnings, 0/0 files transferred/attempted (0.00MB)
+2013-03-22 17:57:05 +1100 INFO  Step 2: Processing wrapper config file...
+2013-03-22 17:57:05 +1100 WARN  Supplied YML file has no files to process.
+2013-03-22 17:57:05 +1100 INFO  Step 2 Completed: 0 warnings, 0/0 files moved/copied.
+2013-03-22 17:57:05 +1100 INFO  Step 2: Upload wrapper has completed. Check results in /home/khanh/devel/restful-api-uploader/log/log.txt
+2013-03-22 17:57:05 +1100 INFO  Step 3: Processing transfer config file
+2013-03-22 17:57:05 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>"toa5.dat", "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"description"=>"some desc", "type"=>"RAW", "experiment_id"=>78}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:57:05 +1100 WARN  File details {"source_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\pending", "file"=>/\Afilename_\d{8}.dat\Z/, "transfer_to_directory"=>"C:\\Documents and Settings\\Administrator\\My Documents\\done", "file_parameters"=>{"type"=>"UNKNOWN", "experiment_id"=>78, "tag_names"=>"Photo,Video"}} No such file or directory - C:\Documents and Settings\Administrator\My Documents\pending
+2013-03-22 17:57:05 +1100 INFO  Step 3 Completed: 2 warnings, 0/0 files transferred/attempted (0.00MB)
+2013-03-22 17:57:05 +1100 INFO  Upload script has finished.
+-------------------------------------------------------

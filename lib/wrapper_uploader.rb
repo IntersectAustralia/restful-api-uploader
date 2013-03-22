@@ -24,9 +24,15 @@ class WrapperUploader
 
   def run
     begin
+      has_file_directive = 0
+      has_file_directive = 1 unless config['files'].is_a?(Array)
       config['files'].each { |file_config| prepare_and_stage_file(file_config) }
+
     rescue
-      log_writer.log_message('WARN', "Supplied YML file did not contain an array named 'files'")
+      log_writer.log_message('WARN', "Supplied YML file has no files to process.")  if has_file_directive==1
+
+      log_writer.log_message('ERROR', "Syntax Error: Supplied YML file did not contain a 'files' directive.") if has_file_directive==0
+
     ensure
       log_writer.log_message('INFO', "Step 2 Completed: #{$warnings} warnings, #{$count_success}/#{$count_files} files moved/copied.")
       $count_success = 0
