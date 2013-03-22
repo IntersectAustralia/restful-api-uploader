@@ -2,29 +2,37 @@ require File.expand_path(File.dirname(__FILE__) + '/api_call_logger')
 require 'rest-client'
 require 'yaml'
 
+$count_files = 0
+$count_success = 0
+
 class WrapperUploader
 
   attr_accessor :config
   attr_accessor :log_writer
   attr_accessor :log_file_path
 
-  def initialize(config_path)
+  def initialize(config_path, log_writer)
     self.config = YAML.load_file(config_path)
     self.log_file_path = File.join(File.dirname(__FILE__), '..', 'log', 'log.txt')
-    self.log_writer = ApiCallLogger.new(log_file_path)
+    self.log_writer = log_writer
+
   rescue => e
     log_writer.log_general_error('Error while loading configuration', e)
-    log_writer.close
+    #log_writer.close
     raise e
   end
 
   def run
     begin
-      raise "Supplied YML file did not contain an array named 'files'" unless config['files'].is_a?(Array)
       config['files'].each { |file_config| prepare_and_stage_file(file_config) }
+    rescue
+      log_writer.log_message('WARN', "Supplied YML file did not contain an array named 'files'")
     ensure
-      log_writer.close
+      log_writer.log_message('INFO', "Step 2 Completed: #{$warnings} warnings, #{$count_success}/#{$count_files} files moved/copied.")
+      $count_success = 0
+      $count_files = 0
     end
+
   end
 
   def get_files(path, file_pattern)
@@ -39,6 +47,7 @@ class WrapperUploader
           found_any = true
         end
       end
+      log_writer.log_message('WARN', "Did not find any files matching regular expression #{file_pattern}") unless found_any
       raise "Did not find any files matching regular expression #{file_pattern}" unless found_any
     end
     files
@@ -59,11 +68,11 @@ class WrapperUploader
       files = get_files(src_path, src_file)
 
       files.each do |file|
+        $count_files += 1
         source  = "#{src_path}/#{file}"
         #Construct new file name based on rotation params
         rotation_date = get_rotation_date(rotation)
         filename = get_dated_filename(file, rotation_date)
-
         temp_destination = File.join(dest_path, filename)
         if File.exist?(temp_destination)
           raise TempFileExistsException.new(temp_destination)
@@ -73,16 +82,17 @@ class WrapperUploader
         else
           FileUtils.cp source, temp_destination
         end
-
         backup_paths.each do |backup_path|
           backup_dest = File.join(backup_path, filename)
           unless temp_destination.eql?(backup_dest)
-	    FileUtils.mkdir (backup_path) unless Dir.exist? (backup_path)
+            FileUtils.mkdir (backup_path) unless Dir.exist? (backup_path)
             FileUtils.cp temp_destination, backup_dest
           end
+          $count_success += 1
         end
+
       end
-      #finished. invoker should now call transfer script.
+        #finished. invoker should now call transfer script.
     rescue TempFileExistsException => e
       log_writer.log_error(e)
     rescue RestClient::Exception => e
@@ -120,7 +130,7 @@ class WrapperUploader
 end
 
 class TempFileExistsException < RuntimeError
- def initialize(path)
+  def initialize(path)
     @path = path
   end
 
