@@ -48,7 +48,7 @@ describe BatchUploader do
             transfer_to_directory: #{transfer_to_path}
             file_parameters:
               type: UNKNOWN
-              experiment_id: 78
+              org_level2_id: 78
               tag_names: 'Photo,Video'
           -
             source_directory: #{source_files_path}
@@ -56,7 +56,7 @@ describe BatchUploader do
             transfer_to_directory: #{transfer_to_path_2}
             file_parameters:
               type: RAW
-              experiment_id: 79
+              org_level2_id: 79
 
         " ""
       write_yml(yml, config_path)
@@ -75,7 +75,7 @@ describe BatchUploader do
       FileUploader.stub(:new).and_return(uploader)
       expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                'type' => 'RAW',
-                               'experiment_id' => 79}
+                               'org_level2_id' => 79}
       uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
 
       uploader = BatchUploader.new(config_path)
@@ -97,7 +97,7 @@ describe BatchUploader do
             transfer_to_directory: /I/dont/exist
             file_parameters:
               type: UNKNOWN
-              experiment_id: 78
+              org_level2_id: 78
               tag_names: 'Photo,Video'
           -
             source_directory: #{source_files_path}
@@ -105,7 +105,7 @@ describe BatchUploader do
             transfer_to_directory: #{transfer_to_path_2}
             file_parameters:
               type: RAW
-              experiment_id: 79
+              org_level2_id: 79
 
         " ""
       write_yml(yml, config_path)
@@ -124,7 +124,7 @@ describe BatchUploader do
       FileUploader.stub(:new).and_return(uploader)
       expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                'type' => 'RAW',
-                               'experiment_id' => 79}
+                               'org_level2_id' => 79}
       uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
 
       uploader = BatchUploader.new(config_path)
@@ -146,7 +146,7 @@ describe BatchUploader do
             transfer_to_directory: #{transfer_to_path}
             file_parameters:
               type: UNKNOWN
-              experiment_id: 78
+              org_level2_id: 78
               tag_names: 'Photo,Video'
           -
             source_directory: #{source_files_path}
@@ -154,7 +154,7 @@ describe BatchUploader do
             transfer_to_directory: #{transfer_to_path_2}
             file_parameters:
               type: RAW
-              experiment_id: 79
+              org_level2_id: 79
 
         " ""
       write_yml(yml, config_path)
@@ -173,7 +173,7 @@ describe BatchUploader do
       FileUploader.stub(:new).and_return(uploader)
       expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                'type' => 'UNKNOWN',
-                               'experiment_id' => 78,
+                               'org_level2_id' => 78,
                                'tag_names' => "Photo,Video"}
       uploader.should_receive(:upload).with(sample1_path, expected_post_params1)
       uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
@@ -203,7 +203,7 @@ describe BatchUploader do
               transfer_to_directory: #{transfer_to_path}
               file_parameters:
                 type: UNKNOWN
-                experiment_id: 78
+                org_level2_id: 78
                 tag_names: 'Photo,Video'
             -
               source_directory: #{source_files_path}
@@ -211,7 +211,7 @@ describe BatchUploader do
               transfer_to_directory: #{transfer_to_path_2}
               file_parameters:
                 type: RAW
-                experiment_id: 79
+                org_level2_id: 79
 
           " ""
         write_yml(yml, config_path)
@@ -230,7 +230,7 @@ describe BatchUploader do
         create_test_file(File.join(transfer_to_path_2, 'sample1.txt'))
         expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                  'type' => 'UNKNOWN',
-                                 'experiment_id' => 78,
+                                 'org_level2_id' => 78,
                                  'tag_names' => "Photo,Video"}
         uploader.should_receive(:upload).with(sample1_path, expected_post_params1)
         uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
@@ -255,7 +255,7 @@ describe BatchUploader do
               transfer_to_directory: #{transfer_to_path}
               file_parameters:
                 type: UNKNOWN
-                experiment_id: 78
+                org_level2_id: 78
                 tag_names: 'Photo,Video'
             -
               source_directory: #{source_files_path}
@@ -263,7 +263,7 @@ describe BatchUploader do
               transfer_to_directory: #{transfer_to_path_2}
               file_parameters:
                 type: RAW
-                experiment_id: 79
+                org_level2_id: 79
 
           " ""
         write_yml(yml, config_path)
@@ -282,11 +282,11 @@ describe BatchUploader do
         create_test_file(File.join(transfer_to_path, 'weather_station_01.dat'))
         expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                  'type' => 'UNKNOWN',
-                                 'experiment_id' => 78,
+                                 'org_level2_id' => 78,
                                  'tag_names' => "Photo,Video"}
         expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                  'type' => 'RAW',
-                                 'experiment_id' => 79}
+                                 'org_level2_id' => 79}
         uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
         uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
 
@@ -313,7 +313,7 @@ describe BatchUploader do
             transfer_to_directory: #{transfer_to_path}
             file_parameters:
               type: UNKNOWN
-              experiment_id: 78
+              org_level2_id: 78
               tag_names: 'Photo,Video'
           -
             source_directory: #{source_files_path}
@@ -321,7 +321,7 @@ describe BatchUploader do
             transfer_to_directory: #{transfer_to_path_2}
             file_parameters:
               type: RAW
-              experiment_id: 79
+              org_level2_id: 79
 
         " ""
       write_yml(yml, config_path)
@@ -334,11 +334,11 @@ describe BatchUploader do
 
         expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                  'type' => 'UNKNOWN',
-                                 'experiment_id' => 78,
+                                 'org_level2_id' => 78,
                                  'tag_names' => "Photo,Video"}
         expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                  'type' => 'RAW',
-                                 'experiment_id' => 79}
+                                 'org_level2_id' => 79}
         uploader.should_receive(:upload).with(sample1_path, expected_post_params1)
         uploader.should_receive(:upload).with(sample2_path, expected_post_params1)
         uploader.should_receive(:upload).with(sample4_path, expected_post_params4)
@@ -375,11 +375,11 @@ describe BatchUploader do
 
         expected_post_params1 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                  'type' => 'UNKNOWN',
-                                 'experiment_id' => 78,
+                                 'org_level2_id' => 78,
                                  'tag_names' => "Photo,Video"}
         expected_post_params4 = {'auth_token' => '1QpgMVLEkuopbzU4Jwq1',
                                  'type' => 'RAW',
-                                 'experiment_id' => 79}
+                                 'org_level2_id' => 79}
         uploader.should_receive(:upload).with(sample1_path, expected_post_params1).and_return(false)
         uploader.should_receive(:upload).with(sample2_path, expected_post_params1).and_return(true)
         uploader.should_receive(:upload).with(sample4_path, expected_post_params4).and_return(false)
