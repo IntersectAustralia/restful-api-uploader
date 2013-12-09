@@ -42,3 +42,7 @@ files:
       org_level2_id: 78
       tag_names: 'Photo,Video'
       label_names: 'Trees,Ruby'
+      # the file has to exist in the system to be added as a parent
+      parent_filenames:
+        - sample.txt
+        - toa5.dat
