@@ -9,91 +9,101 @@ class ApiCallLogger
   end
 
   def log_message(severity, message)
-    log_file.printf timestamp
-    log_file.printf 'ERROR ' if severity == 'ERROR'
-    log_file.printf 'INFO  ' if severity == 'INFO'
-    log_file.printf 'WARN  ' if severity == 'WARN'
-    log_file.printf '' if severity == 'SYM'
-    log_file.puts message
+    time = timestamp
+    output = "#{time}#{severity.ljust(6)}#{message}"
+    puts output
+    log_file.puts output
   end
 
   def log_general_error(message, exception)
-    log_file.printf timestamp
-    log_file.printf 'WARN  '
-    log_file.printf(message)
-    log_file.puts(exception.message)
-    #log_file.puts(exception.backtrace.join("\n"))
-    #log_file.puts ENTRY_DELIMITER
+    time = timestamp
+    output = "#{time}WARN  #{message}\n#{exception.message}"
+    puts output
+    log_file.puts(output)
   end
 
   #no matching files?
   def log_group_error(config, exception)
-    log_file.printf timestamp
-    log_file.printf 'WARN  '
-    log_file.printf "File details #{config} "
-    log_file.puts(exception.message)
-    #log_file.puts(exception.backtrace.join("\n"))
-    #log_file.puts ENTRY_DELIMITER
+    time = timestamp
+    output = "#{time}WARN  File details #{config} #{exception.message}"
+    puts output
+    log_file.puts(output)
   end
 
   def log_start(file_path)
-    log_file.puts("#{Time.now} - attempting to upload file #{file_path}")
+    time = timestamp
+    output = "#{time}- attempting to upload file #{file_path}"
+    puts output
+    log_file.puts(output)
   end
 
   def log_request(params, url)
-    log_file.printf timestamp
+    time = timestamp
+    puts "#{time}INFO  Transfering "
+
+    log_file.printf time
     log_file.printf 'INFO  Transfering '
-    #log_file.printf("Endpoint: #{url} \n")
-    #log_file.puts('Parameters:')
     params.each_pair do |k, v|
-      #log_file.puts("    #{k}: #{v.inspect}")
       if k == "file"
-        log_file.puts("#{v.inspect}")
+        puts("#{v.inspect} - #{number_to_human_size(v.size)}")
+        log_file.puts("#{v.inspect} - #{number_to_human_size(v.size)}")
       end
     end
   end
 
   def log_response(response)
-    log_file.printf timestamp
+    time = timestamp
+
+    output = ""
+
     if response.nil?
-      log_file.puts('ERROR Client did not receive a response from server before timing out. Check server side to see if file was uploaded. ')
+      output = "#{time}ERROR Client did not receive a response from server before timing out. Check server side to see if file was uploaded. "
+      puts(output)
+      log_file.puts(output)
     else
       #write an IF statement if 401 then error
 
-      if response.code == 401
-        log_file.puts("ERROR Response code: #{response.code} (UNAUTHORIZED), messages: [\"Invalid authentication token.\"]")
+      if response.status == 401
+        output = "#{time}ERROR Response code: #{response.status} (UNAUTHORIZED), messages: [\"Invalid authentication token.\"]"
+        puts(output)
+        log_file.puts(output)
         return
       end
 
-      log_file.printf("INFO  Response code: #{response.code} ")
-      log_file.printf("#{'(SUCCESS)' if response.code == 200}")
+      output = "#{time}INFO  Response code: #{response.status} #{'(SUCCESS)' if response.status == 200}"
+      puts output
+      log_file.printf(output)
 
       response_details = JSON.parse(response.body)
       response_details.each_pair do |k, v|
-        #log_file.puts("#{k}: #{v.inspect}")
         if k == "messages"
+          puts(" #{k}: #{v.inspect}")
           log_file.puts(" #{k}: #{v.inspect}")
         end
 
       end
     end
-    #log_file.puts(ENTRY_DELIMITER)
   end
 
   #errors i.e. no file or directory, no url
   def log_error(exception)
-    log_file.printf timestamp
+    time = timestamp
+    puts "#{time}ERROR "
+    puts(exception.message)
+
+    log_file.printf time
     log_file.printf('ERROR ')
     log_file.puts(exception.message)
-    #log_file.puts(exception.backtrace.join("\n"))
-    #log_file.puts(ENTRY_DELIMITER)
   end
 
   def log_warning(exception)
-    log_file.printf timestamp
+    time = timestamp
+    puts "#{time}WARN  "
+    puts(exception.message)
+
+    log_file.printf time
     log_file.printf('WARN  ')
     log_file.puts(exception.message)
-
   end
 
   def close
@@ -105,5 +115,19 @@ class ApiCallLogger
     "#{Time.now} "
   end
 
+  def number_to_human_size(size)
+    case
+      when size < 1024.0
+        '%d Bytes' % size
+      when size < 1024.0 * 1024.0
+        '%.1f KB'  % (size / 1024.0)
+      when size < 1024.0 * 1024.0 * 1024.0
+        '%.1f MB'  % (size / (1024 * 1024.0))
+      when size < 1024.0 * 1024.0 * 1024.0 * 1024.0
+        '%.1f GB'  % (size / (1024.0 * 1024.0 * 1024.0))
+      else
+        '%.1f TB'  % (size / (1024.0 * 1024.0 * 1024.0 * 1024.0))
+    end
+  end
 
 end

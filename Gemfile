@@ -1,6 +1,6 @@
 source "http://rubygems.org"
 
-gem 'rest-client'
+gem 'httpclient'
 
 group :development do
   gem "rspec", "~> 2.0.0"

@@ -1,5 +1,13 @@
 require File.expand_path(File.dirname(__FILE__) + '/api_call_logger')
-require 'rest-client'
+begin
+  gem "httpclient"
+rescue Gem::LoadError
+  # not installed
+  `gem install httpclient`
+  Gem.clear_paths
+end
+
+require 'httpclient'
 require 'yaml'
 
 $count_files = 0
