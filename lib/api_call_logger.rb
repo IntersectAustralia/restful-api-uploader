@@ -13,6 +13,7 @@ class ApiCallLogger
     output = "#{time}#{severity.ljust(6)}#{message}"
     puts output
     log_file.puts output
+    log_file.flush
   end
 
   def log_general_error(message, exception)
@@ -20,6 +21,7 @@ class ApiCallLogger
     output = "#{time}WARN  #{message}\n#{exception.message}"
     puts output
     log_file.puts(output)
+    log_file.flush
   end
 
   #no matching files?
@@ -28,6 +30,7 @@ class ApiCallLogger
     output = "#{time}WARN  File details #{config} #{exception.message}"
     puts output
     log_file.puts(output)
+    log_file.flush
   end
 
   def log_start(file_path)
@@ -35,6 +38,7 @@ class ApiCallLogger
     output = "#{time}- attempting to upload file #{file_path}"
     puts output
     log_file.puts(output)
+    log_file.flush
   end
 
   def log_request(params, url)
@@ -47,6 +51,7 @@ class ApiCallLogger
       if k == "file"
         puts("#{v.inspect} - #{number_to_human_size(v.size)}")
         log_file.puts("#{v.inspect} - #{number_to_human_size(v.size)}")
+        log_file.flush
       end
     end
   end
@@ -60,6 +65,7 @@ class ApiCallLogger
       output = "#{time}ERROR Client did not receive a response from server before timing out. Check server side to see if file was uploaded. "
       puts(output)
       log_file.puts(output)
+      log_file.flush
     else
       #write an IF statement if 401 then error
 
@@ -67,6 +73,7 @@ class ApiCallLogger
         output = "#{time}ERROR Response code: #{response.status} (UNAUTHORIZED), messages: [\"Invalid authentication token.\"]"
         puts(output)
         log_file.puts(output)
+        log_file.flush
         return
       end
 
@@ -79,6 +86,7 @@ class ApiCallLogger
         if k == "messages"
           puts(" #{k}: #{v.inspect}")
           log_file.puts(" #{k}: #{v.inspect}")
+          log_file.flush
         end
 
       end
@@ -94,6 +102,7 @@ class ApiCallLogger
     log_file.printf time
     log_file.printf('ERROR ')
     log_file.puts(exception.message)
+    log_file.flush
   end
 
   def log_warning(exception)
@@ -104,6 +113,7 @@ class ApiCallLogger
     log_file.printf time
     log_file.printf('WARN  ')
     log_file.puts(exception.message)
+    log_file.flush
   end
 
   def close
