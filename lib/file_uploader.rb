@@ -1,5 +1,4 @@
 class FileUploader
-
   TIMEOUT = 30 * 60 # 30 minutes
   attr_accessor :log_writer, :file_parameter_name, :server_url
 
@@ -24,6 +23,7 @@ class FileUploader
       client.receive_timeout = TIMEOUT
       client.send_timeout = TIMEOUT
       response = client.post server_url, post_params, accept: :json
+      post_params[file_parameter_name].close
       log_writer.log_response(response)
       response.status == 200
     rescue
