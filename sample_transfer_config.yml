@@ -25,6 +25,7 @@ files:
       description: some desc
       type: RAW
       org_level2_id: 78
+      access: 'Public'
   -
     #directory where the file will be found
     source_directory: C:\Documents and Settings\Administrator\My Documents\pending
@@ -46,3 +47,9 @@ files:
       parent_filenames:
         - sample.txt
         - toa5.dat
+      access: 'Private'
+      access_to_all_institutional_users: true
+      access_to_user_groups: true
+      access_groups:
+        - Group1_name
+        - Group2_name
