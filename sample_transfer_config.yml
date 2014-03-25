@@ -25,6 +25,7 @@ files:
       description: some desc
       type: RAW
       org_level2_id: 78
+      # access is either 'Public' or 'Private' (default is Private with access to all institutional users)
       access: 'Public'
   -
     #directory where the file will be found
@@ -48,8 +49,10 @@ files:
         - sample.txt
         - toa5.dat
       access: 'Private'
+      # private access options can be set true or false
       access_to_all_institutional_users: true
       access_to_user_groups: true
+      # the access group has to exist in the system to be added
       access_groups:
         - Group1_name
         - Group2_name
