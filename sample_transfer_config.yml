@@ -27,6 +27,9 @@ files:
       org_level2_id: 78
       # access is either 'Public' or 'Private' (default is Private with access to all institutional users)
       access: 'Public'
+      # start and end time will be used if the file does not contain this metadata. Must be of the format 'yyyy-mm-dd hh:mm:ss'
+      start_time: '2015-08-04 16:00:00'
+      end_time: '2015-08-05 16:00:00'
   -
     #directory where the file will be found
     source_directory: C:\Documents and Settings\Administrator\My Documents\pending
