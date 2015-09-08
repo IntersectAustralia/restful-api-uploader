@@ -32,14 +32,24 @@ class WrapperUploader
 
   def run
     begin
-      has_file_directive = 0
-      has_file_directive = 1 unless config['files'].is_a?(Array)
-      config['files'].each { |file_config| prepare_and_stage_file(file_config) }
 
-    rescue
-      log_writer.log_message('WARN', "Supplied YML file has no files to process.")  if has_file_directive==1
+      if !config
+        log_writer.log_message('ERROR', "Syntax Error: Supplied YML file could not be read or is empty.")
+        return
+      end
 
-      log_writer.log_message('ERROR', "Syntax Error: Supplied YML file did not contain a 'files' directive.") if has_file_directive==0
+      to_process = config['files']
+      if to_process.nil? || !to_process.is_a?(Array)
+        log_writer.log_message('ERROR', "Syntax Error: Supplied YML file did not contain a 'files' directive or it is not an Array.")
+        return
+      end
+
+      if to_process.empty?
+        log_writer.log_message('WARN', "Supplied YML file has no files to process.")
+        return
+      end
+
+      to_process.each { |file_config| prepare_and_stage_file(file_config) }
 
     ensure
       log_writer.log_message('INFO', "Step 2 Completed: #{$warnings} warnings, #{$count_success}/#{$count_files} files moved/copied.")
@@ -62,7 +72,6 @@ class WrapperUploader
         end
       end
       log_writer.log_message('WARN', "Did not find any files matching regular expression #{file_pattern}") unless found_any
-      raise "Did not find any files matching regular expression #{file_pattern}" unless found_any
     end
     files
   end
@@ -109,8 +118,6 @@ class WrapperUploader
         #finished. invoker should now call transfer script.
     rescue TempFileExistsException => e
       log_writer.log_error(e)
-    rescue RestClient::Exception => e
-      log_writer.log_response(e.response)
     rescue
       log_writer.log_error($!)
     end
